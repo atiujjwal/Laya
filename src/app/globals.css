@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Mode - High Value, Low Saturation */
+    --background: 0 0% 100%;
+    /* White */
+    --foreground: 240 10% 3.9%;
+    /* Dark Grey text */
+
+    /* Primary (Rose/Pink) */
+    --primary: 330 80% 90%;
+    /* rose-100ish */
+    --primary-foreground: 335 80% 20%;
+    /* rose-900ish */
+
+    /* Secondary (Blue/Sky) */
+    --secondary: 200 80% 90%;
+    --secondary-foreground: 200 80% 20%;
+
+    /* Accent (Purple/Violet) */
+    --accent: 270 80% 90%;
+    --accent-foreground: 270 80% 20%;
+
+    /* Borders */
+    --border: 240 5.9% 90%;
+  }
+
+  /* Dark Mode - Maintains Pastel "Feel" without being muddy [cite: 773] */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: 240 10% 3.9%;
+      --foreground: 0 0% 98%;
+
+      /* Invert: Use darker backgrounds with pastel text */
+      --primary: 335 80% 20%;
+      /* rose-900 */
+      --primary-foreground: 330 80% 90%;
+      /* rose-100 */
+
+      --secondary: 200 80% 20%;
+      --secondary-foreground: 200 80% 90%;
+
+      --accent: 270 80% 20%;
+      --accent-foreground: 270 80% 90%;
+
+      --border: 240 3.7% 15.9%;
+    }
+  }
+}
+
+body {
+  @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))];
+}
