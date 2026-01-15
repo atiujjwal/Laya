@@ -2,6 +2,7 @@ services:
   postgres:
     image: postgres:16
     container_name: laya_db
+    command: ["postgres", "-c", "wal_level=logical"]
     environment:
       POSTGRES_USER: laya
       POSTGRES_PASSWORD: laya
@@ -10,7 +11,35 @@ services:
       - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U laya"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  powersync:
+    image: journeyapps/powersync-service:latest
+    container_name: laya_sync
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8081:8080"
+    environment:
+      # Pass DB connection to the config file
+      PS_DATABASE_URI: postgres://laya:laya@postgres:5432/laya
+      PS_PORT: 8080
+      # CORRECT WAY to set config file
+      POWERSYNC_CONFIG_PATH: /config/powersync.yaml
+    volumes:
+      - ./powersync.yaml:/config/powersync.yaml
+      - ./sync_rules.yaml:/config/sync_rules.yaml
+      # Ensure you have generated this key (see step 3 below)
+      - ./powersync-public.key:/config/powersync-public.key
+    # Run in "Unified" mode (API + Sync Worker together)
+    command: ["start", "-r", "unified"]
 
 volumes:
   postgres_data:

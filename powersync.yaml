@@ -1,0 +1,27 @@
+# PowerSync Server Configuration
+
+# Networking
+port: 8080
+host: 0.0.0.0
+
+# Database Connection (References env var from Docker)
+database:
+  uri: ${PS_DATABASE_URI}
+
+# Replication Rules
+sync_rules:
+  path: /config/sync_rules.yaml
+
+# Security: Token Verification
+# This ensures only your Next.js backend can authorize users.
+jwt:
+  # The "iss" (issuer) claim your Next.js backend adds to tokens.
+  # If you didn't set a specific issuer in the SDK, standard JWTs often omit it 
+  # or you can enforce it here. For now, we allow any issuer signed by our key.
+  # client_id: "laya-app" 
+  
+  # Method 1: Load Public Key from file (Mounted in Docker)
+  public_key_path: /config/powersync-public.key
+  
+  # Optional: Enforce specific algorithms
+  algorithms: ["RS256"]

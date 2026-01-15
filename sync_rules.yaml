@@ -1,0 +1,10 @@
+bucket_definitions:
+  user_data:
+    # "select user_id() as uid" grabs the 'sub' or 'uid' field from the JWT
+    parameters: select user_id() as uid
+    data:
+      - select * from tasks where user_id = bucket.uid
+      - select * from time_blocks where user_id = bucket.uid
+      - select * from habit_logs where user_id = bucket.uid
+      - select * from categories where user_id = bucket.uid
+      - select * from user_context where user_id = bucket.uid

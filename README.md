@@ -58,5 +58,23 @@ docker-compose up -d
 docker-compose ps
 
 
+# Generate migration files whenever there is an schema change
 npx drizzle-kit generate
+
+# Push changes to the running Docker DB
 npx drizzle-kit migrate
+
+
+docker exec -it laya_db psql -U laya -d laya
+
+
+
+# 1. Generate Private Key (used by Next.js Backend)
+openssl genrsa -out powersync-private.key 2048
+
+# 2. Generate Public Key (used by PowerSync Docker Service)
+openssl rsa -in powersync-private.key -pubout -out powersync-public.key
+
+
+
+docker logs laya_sync

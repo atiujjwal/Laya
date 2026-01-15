@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@auth/core": "^0.41.1",
+    "@auth/drizzle-adapter": "^1.11.1",
     "@powersync/node": "^0.15.2",
     "@powersync/web": "^1.31.0",
     "ai": "^6.0.33",
