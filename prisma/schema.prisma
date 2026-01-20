@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Frequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  INTERVAL
+}
+
+enum LogStatus {
+  COMPLETED
+  SKIPPED
+  FAILED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String? // Optional: Only if supporting email/pass login alongside OAuth
+
+  // App Settings
+  timezone   String  @default("UTC") // Critical for correct habit day calculation
+  onboarding Boolean @default(false)
+
+  // Google Sheets Sync Metadata
+  googleSheetId String? // The ID of the user's synced spreadsheet
+  lastSyncTime  DateTime? // Timestamp of last successful sync
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  accounts Account[]
+  sessions Session[]
+  habits   Habit[]
+  goals    Goal[]
+  dayPlans DayPlan[]
+
+  // Performance: Index email for fast lookups
+  @@index([email])
+}
+
+// Standard NextAuth Account Model (Stores Google Refresh Tokens for Sync)
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Habit {
+  id     String @id @default(cuid())
+  userId String
+
+  // Display Details
+  title       String
+  description String?
+  color       String  @default("#000000")
+  icon        String? // Emoji or Icon name
+
+  // Recurrence & Scheduling
+  // "rrule" allows complex logic like "Every 2nd Tuesday"
+  frequency Frequency @default(DAILY)
+  weekDays  Int[] // Array of integers: 0=Sun, 1=Mon (Simple filtering)
+  rrule     String? // Advanced recurrence string for calendar engines
+
+  // Tracking Configuration
+  targetValue Int     @default(1) // 1 = Boolean check. >1 = Numeric (e.g. 10 pages)
+  unit        String? // e.g., "pages", "minutes", "liters"
+
+  // Gamification & Caching (Performance Optimization)
+  currentStreak Int @default(0)
+  longestStreak Int @default(0)
+
+  // Lifecycle
+  archived  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs HabitLog[]
+
+  @@index([userId, archived]) // Quick lookup for active habits
+}
+
+model HabitLog {
+  id      String   @id @default(cuid())
+  habitId String
+  date    DateTime // Stored as UTC Midnight
+
+  // Value Tracking
+  value     Int // The actual value logged (e.g., 5 pages)
+  completed Boolean   @default(false)
+  status    LogStatus @default(COMPLETED)
+
+  // The "Hybrid" Meta Column (Stores AI Mood, Notes, Context)
+  // Example: { "mood": "Happy", "weather": "Rainy", "notes": "Felt tired but did it" }
+  meta Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  // Compound Index ensures one log per habit per day & fast range queries
+  @@unique([habitId, date])
+  @@index([date])
+}
+
+model Goal {
+  id     String @id @default(cuid())
+  userId String
+
+  title      String
+  category   String    @default("General") // e.g. Health, Career
+  targetDate DateTime?
+
+  // Flexible Steps stored as JSON instead of a separate table to reduce Joins
+  // Example: [{ "step": "Buy shoes", "done": true }, { "step": "Run 5k", "done": false }]
+  steps Json[]
+
+  progress  Int     @default(0) // Percentage 0-100
+  completed Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DayPlan {
+  id     String   @id @default(cuid())
+  userId String
+  date   DateTime // The day this plan is for
+
+  // AI Generated Schedule
+  // Example: [{ "time": "08:00", "task": "Gym", "reason": "Energy high" }]
+  schedule Json
+
+  dayScore Int? // 0-100 Score based on habit completion
+  summary  String? // AI written summary of the day
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}

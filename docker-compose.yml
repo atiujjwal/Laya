@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: laya_db
+    restart: always
+    environment:
+      POSTGRES_USER: laya_user
+      POSTGRES_PASSWORD: securepass
+      POSTGRES_DB: laya_db
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
