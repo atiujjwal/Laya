@@ -69,6 +69,16 @@ model Account {
   @@unique([provider, providerAccountId])
 }
 
+model VerificationToken {
+  identifier String   // Email or Phone Number
+  token      String   @unique
+  expires    DateTime
+
+  // Composite ID ensures a user can have multiple tokens (e.g., login + reset)
+  // but not duplicates for the same action
+  @@unique([identifier, token])
+}
+
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique

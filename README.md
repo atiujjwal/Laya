@@ -59,11 +59,14 @@ npx prisma migrate dev --name init
 # 1. Format the schema file
 npx prisma format
 
-# 2. Create the migration file (this writes the SQL)
+# 2. Generate the TypeScript client
+npx prisma generate
+
+# 3. Create the migration file (this writes the SQL)
 npx prisma migrate dev --name init_production_schema
 
-# 3. Generate the TypeScript client
-npx prisma generate
+# 4 To access the db
+npx prisma studio
 
 
 Docker:
