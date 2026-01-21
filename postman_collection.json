@@ -1,0 +1,768 @@
+{
+  "info": {
+    "_postman_id": "laya-habit-tracker-api",
+    "name": "Laya - Habit Tracker API",
+    "description": "Complete API collection for Laya Habit Tracker Application with proper module organization and environment variable management",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Send OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"user@example.com\",\n  \"type\": \"email\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/otp",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "otp"
+              ]
+            },
+            "description": "Generate and send OTP to user's email or mobile"
+          },
+          "response": []
+        },
+        {
+          "name": "NextAuth Handler",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"SecurePassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/[...nextauth]",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "[...nextauth]"
+              ]
+            },
+            "description": "Standard NextAuth authentication endpoint"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👤 User Profile",
+      "item": [
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/user/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "profile"
+              ]
+            },
+            "description": "Retrieve current user profile information"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"timezone\": \"America/New_York\",\n  \"onboarding\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/user/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "profile"
+              ]
+            },
+            "description": "Update user profile settings",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "if (pm.response.code === 200) {",
+                    "    var jsonData = pm.response.json();",
+                    "    pm.environment.set(\"user_id\", jsonData.id);",
+                    "    pm.environment.set(\"user_name\", jsonData.name);",
+                    "    pm.environment.set(\"user_timezone\", jsonData.timezone);",
+                    "}"
+                  ],
+                  "type": "text/javascript",
+                  "id": "profile-update-test"
+                }
+              }
+            ]
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📋 Goals Management",
+      "item": [
+        {
+          "name": "List All Goals",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/goals?completed=false&category=Health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "goals"
+              ],
+              "query": [
+                {
+                  "key": "completed",
+                  "value": "false",
+                  "disabled": true
+                },
+                {
+                  "key": "category",
+                  "value": "Health",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieve all goals with optional filtering by completion status and category"
+          },
+          "response": []
+        },
+        {
+          "name": "Create New Goal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Complete AWS Certification\",\n  \"category\": \"Career\",\n  \"targetDate\": \"2026-06-30T23:59:59Z\",\n  \"steps\": [\n    {\n      \"step\": \"Complete Module 1: Cloud Fundamentals\",\n      \"done\": false\n    },\n    {\n      \"step\": \"Complete Module 2: Compute Services\",\n      \"done\": false\n    },\n    {\n      \"step\": \"Take practice exams\",\n      \"done\": false\n    },\n    {\n      \"step\": \"Schedule and pass final exam\",\n      \"done\": false\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/goals",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "goals"
+              ]
+            },
+            "description": "Create a new goal with steps",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "if (pm.response.code === 201) {",
+                    "    var jsonData = pm.response.json();",
+                    "    pm.environment.set(\"goal_id\", jsonData.id);",
+                    "    pm.environment.set(\"goal_title\", jsonData.title);",
+                    "    console.log('Goal created with ID: ' + jsonData.id);",
+                    "}"
+                  ],
+                  "type": "text/javascript",
+                  "id": "create-goal-test"
+                }
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "Update Goal",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Complete AWS Certification - Updated\",\n  \"progress\": 50,\n  \"completed\": false,\n  \"steps\": [\n    {\n      \"step\": \"Complete Module 1: Cloud Fundamentals\",\n      \"done\": true\n    },\n    {\n      \"step\": \"Complete Module 2: Compute Services\",\n      \"done\": true\n    },\n    {\n      \"step\": \"Take practice exams\",\n      \"done\": false\n    },\n    {\n      \"step\": \"Schedule and pass final exam\",\n      \"done\": false\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/goals/{{goal_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "goals",
+                "{{goal_id}}"
+              ]
+            },
+            "description": "Update an existing goal",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "if (pm.response.code === 200) {",
+                    "    var jsonData = pm.response.json();",
+                    "    pm.environment.set(\"goal_progress\", jsonData.progress);",
+                    "    console.log('Goal updated: ' + jsonData.title);",
+                    "}"
+                  ],
+                  "type": "text/javascript",
+                  "id": "update-goal-test"
+                }
+              }
+            ]
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🎯 Habits Management",
+      "item": [
+        {
+          "name": "List All Habits",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/habits?page=1&limit=50&archived=false",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "habits"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "archived",
+                  "value": "false"
+                }
+              ]
+            },
+            "description": "Retrieve paginated list of habits with filtering options"
+          },
+          "response": []
+        },
+        {
+          "name": "Create New Habit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Morning Meditation\",\n  \"description\": \"10 minutes of daily meditation to start the day\",\n  \"color\": \"#8B5CF6\",\n  \"icon\": \"🧘\",\n  \"frequency\": \"DAILY\",\n  \"weekDays\": [0, 1, 2, 3, 4, 5, 6],\n  \"targetValue\": 1,\n  \"unit\": \"session\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/habits",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "habits"
+              ]
+            },
+            "description": "Create a new habit with frequency and tracking configuration",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "if (pm.response.code === 201) {",
+                    "    var jsonData = pm.response.json();",
+                    "    pm.environment.set(\"habit_id\", jsonData.id);",
+                    "    pm.environment.set(\"habit_title\", jsonData.title);",
+                    "    console.log('Habit created with ID: ' + jsonData.id);",
+                    "}"
+                  ],
+                  "type": "text/javascript",
+                  "id": "create-habit-test"
+                }
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "Get Habit Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/habits/{{habit_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "habits",
+                "{{habit_id}}"
+              ]
+            },
+            "description": "Retrieve detailed information about a specific habit"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Habit",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Morning Meditation - Extended\",\n  \"description\": \"15 minutes of daily meditation with focus on breathing\",\n  \"targetValue\": 15,\n  \"unit\": \"minutes\",\n  \"frequency\": \"DAILY\",\n  \"weekDays\": [0, 1, 2, 3, 4, 5, 6]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/habits/{{habit_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "habits",
+                "{{habit_id}}"
+              ]
+            },
+            "description": "Update habit configuration",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "if (pm.response.code === 200) {",
+                    "    var jsonData = pm.response.json();",
+                    "    pm.environment.set(\"habit_title\", jsonData.title);",
+                    "    console.log('Habit updated: ' + jsonData.title);",
+                    "}"
+                  ],
+                  "type": "text/javascript",
+                  "id": "update-habit-test"
+                }
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Habit (Archive)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/habits/{{habit_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "habits",
+                "{{habit_id}}"
+              ]
+            },
+            "description": "Archive a habit (soft delete - preserves historical logs)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📊 Habit Logging",
+      "item": [
+        {
+          "name": "Log Habit Entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"habitId\": \"{{habit_id}}\",\n  \"date\": \"2026-01-21T00:00:00Z\",\n  \"value\": 15,\n  \"completed\": true,\n  \"meta\": {\n    \"mood\": \"Happy\",\n    \"weather\": \"Sunny\",\n    \"notes\": \"Felt refreshed and energized\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/habits/log",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "habits",
+                "log"
+              ]
+            },
+            "description": "Log a habit completion with optional metadata (mood, notes, etc.)",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "if (pm.response.code === 200) {",
+                    "    var jsonData = pm.response.json();",
+                    "    pm.environment.set(\"log_id\", jsonData.id);",
+                    "    console.log('Habit logged for date: ' + jsonData.date);",
+                    "}"
+                  ],
+                  "type": "text/javascript",
+                  "id": "log-habit-test"
+                }
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "Get Habit Logs (Date Range)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/habits/logs?startDate=2026-01-01T00:00:00Z&endDate=2026-01-31T23:59:59Z",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "habits",
+                "logs"
+              ],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2026-01-01T00:00:00Z"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2026-01-31T23:59:59Z"
+                }
+              ]
+            },
+            "description": "Retrieve habit logs within a specified date range"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📅 Daily Planner",
+      "item": [
+        {
+          "name": "Get Day Plan",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/planner?date=2026-01-21",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "planner"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2026-01-21"
+                }
+              ]
+            },
+            "description": "Retrieve AI-generated daily plan for a specific date"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate AI Daily Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2026-01-22T00:00:00Z\",\n  \"focus\": \"Complete project deadlines and maintain meditation routine\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/planner/generate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "planner",
+                "generate"
+              ]
+            },
+            "description": "Generate an AI-powered daily plan based on user's habits and goals",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "if (pm.response.code === 200) {",
+                    "    var jsonData = pm.response.json();",
+                    "    pm.environment.set(\"plan_id\", jsonData.id);",
+                    "    pm.environment.set(\"day_score\", jsonData.dayScore);",
+                    "    console.log('Plan generated with score: ' + jsonData.dayScore);",
+                    "}"
+                  ],
+                  "type": "text/javascript",
+                  "id": "generate-plan-test"
+                }
+              }
+            ]
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📤 Data Export",
+      "item": [
+        {
+          "name": "Export Habit Data to CSV",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/export",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "export"
+              ]
+            },
+            "description": "Export all habit logs and data as CSV file"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "your_jwt_token_here",
+      "type": "string"
+    },
+    {
+      "key": "goal_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "goal_title",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "goal_progress",
+      "value": "0",
+      "type": "string"
+    },
+    {
+      "key": "habit_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "habit_title",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "log_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "plan_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "day_score",
+      "value": "0",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_name",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_timezone",
+      "value": "UTC",
+      "type": "string"
+    }
+  ]
+}
