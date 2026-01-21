@@ -1,45 +1,45 @@
-import React from "react";
-import { Check, Circle } from "lucide-react";
-import { cn } from "@/lib/utils";
+'use client';
+
+import { Checkbox } from '@/components/ui/checkbox';
+import { cn } from '@/lib/utils';
 
 interface GoalStepItemProps {
-  step: string;
-  isDone: boolean;
-  onToggle: () => void;
+  id: string;
+  text: string;
+  isCompleted: boolean;
+  onToggle: (id: string) => void;
 }
 
-export const GoalStepItem: React.FC<GoalStepItemProps> = ({
-  step,
-  isDone,
+export function GoalStepItem({
+  id,
+  text,
+  isCompleted,
   onToggle,
-}) => {
+}: GoalStepItemProps) {
   return (
     <div
-      onClick={onToggle}
-      className="flex items-start gap-3 p-2 rounded-md hover:bg-accent/50 cursor-pointer group transition-all"
+      className={cn(
+        'flex items-start gap-3 p-2 rounded-md transition-colors',
+        isCompleted ? 'bg-neutral-50' : 'hover:bg-neutral-50',
+      )}
     >
-      <div
+      <Checkbox
+        id={id}
+        checked={isCompleted}
+        onCheckedChange={() => onToggle(id)}
+        className="mt-0.5 data-[state=checked]:bg-laya-success data-[state=checked]:border-laya-success"
+      />
+      <label
+        htmlFor={id}
         className={cn(
-          "mt-0.5 w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-colors",
-          isDone
-            ? "bg-green-500 border-green-500 text-white"
-            : "border-muted-foreground/30 group-hover:border-primary",
+          'text-sm leading-none cursor-pointer select-none',
+          isCompleted
+            ? 'text-muted-foreground line-through'
+            : 'text-foreground',
         )}
       >
-        {isDone ? (
-          <Check className="w-3 h-3" strokeWidth={3} />
-        ) : (
-          <Circle className="w-3 h-3 opacity-0 group-hover:opacity-50" />
-        )}
-      </div>
-      <span
-        className={cn(
-          "text-sm transition-opacity",
-          isDone && "line-through text-muted-foreground opacity-70",
-        )}
-      >
-        {step}
-      </span>
+        {text}
+      </label>
     </div>
   );
-};
+}

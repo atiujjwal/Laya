@@ -1,54 +1,39 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import { Card, CardContent } from '@/components/ui/card';
 import { LucideIcon } from 'lucide-react';
 
 interface StatCardProps {
   title: string;
   value: string | number;
   icon: LucideIcon;
-  trend?: {
-    value: number;
-    isPositive: boolean;
-  };
-  className?: string;
+  subText?: string;
+  trend?: 'up' | 'down' | 'neutral';
 }
 
-export const StatCard: React.FC<StatCardProps> = ({
+export function StatCard({
   title,
   value,
   icon: Icon,
+  subText,
   trend,
-  className,
-}) => {
+}: StatCardProps) {
   return (
-    <div
-      className={cn(
-        'bg-card border rounded-xl p-6 shadow-sm flex items-start justify-between',
-        className,
-      )}
-    >
-      <div>
-        <p className="text-sm font-medium text-muted-foreground">{title}</p>
-        <h3 className="text-2xl font-bold mt-2">{value}</h3>
-
-        {trend && (
-          <div
-            className={cn(
-              'flex items-center text-xs mt-1 font-medium',
-              trend.isPositive ? 'text-green-600' : 'text-red-600',
-            )}
-          >
-            <span>
-              {trend.isPositive ? '+' : ''}
-              {trend.value}%
-            </span>
-            <span className="text-muted-foreground ml-1">from last month</span>
-          </div>
-        )}
-      </div>
-      <div className="p-3 bg-primary/10 rounded-lg text-primary">
-        <Icon className="w-5 h-5" />
-      </div>
-    </div>
+    <Card className="shadow-sm hover:shadow-md transition-shadow">
+      <CardContent className="p-6 flex items-start justify-between">
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">{title}</p>
+          <h3 className="text-2xl font-bold mt-2 text-foreground">{value}</h3>
+          {subText && (
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+              {trend === 'up' && <span className="text-green-500">↑</span>}
+              {trend === 'down' && <span className="text-red-500">↓</span>}
+              {subText}
+            </p>
+          )}
+        </div>
+        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+          <Icon className="h-5 w-5" />
+        </div>
+      </CardContent>
+    </Card>
   );
-};
+}

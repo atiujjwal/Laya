@@ -1,78 +1,71 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { format } from 'date-fns';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/atoms/dialog';
-import { Button } from '@/components/atoms/button';
-import { Textarea } from '@/components/atoms/textarea';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 interface LogNoteDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  habitId: string;
-  date: Date;
-  currentNote?: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  date: Date | null;
+  habitTitle?: string;
 }
 
-export const LogNoteDialog: React.FC<LogNoteDialogProps> = ({
-  isOpen,
-  onClose,
-  habitId,
+export function LogNoteDialog({
+  open,
+  onOpenChange,
   date,
-  currentNote,
-}) => {
-  const [note, setNote] = useState(currentNote || '');
-  const queryClient = useQueryClient();
+  habitTitle,
+}: LogNoteDialogProps) {
+  const [note, setNote] = useState('');
 
-  const mutation = useMutation({
-    mutationFn: async () => {
-      // We use the log endpoint but update the 'meta' field
-      const res = await fetch('/api/habits/log', {
-        method: 'POST',
-        body: JSON.stringify({
-          habitId,
-          date: date.toISOString(),
-          completed: true, // Assuming adding a note implies activity, or pass existing status
-          value: 1,
-          meta: { note }, // The key change
-        }),
-      });
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['habits'] });
-      onClose();
-    },
-  });
+  const handleSave = () => {
+    console.log(`Saving note for ${date}: ${note}`);
+    onOpenChange(false);
+  };
+
+  if (!date) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add Note for {date.toLocaleDateString()}</DialogTitle>
+          <DialogTitle>Add Note</DialogTitle>
+          <DialogDescription>
+            {habitTitle} • {format(date, 'MMMM do, yyyy')}
+          </DialogDescription>
         </DialogHeader>
-
-        <div className="space-y-4 pt-4">
-          <Textarea
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="How did it go? (e.g. Felt tired but pushed through)"
-            className="min-h-[100px]"
-          />
-
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button onClick={() => mutation.mutate()}>Save Note</Button>
+        <div className="grid gap-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="note">Reflection</Label>
+            <Textarea
+              id="note"
+              placeholder="Why did you miss this? Or what went well?"
+              className="min-h-[100px]"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
           </div>
         </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} className="bg-primary text-white">
+            Save Note
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-};
+}
