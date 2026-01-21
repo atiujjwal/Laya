@@ -6,15 +6,9 @@ import { PrismaClient } from "@prisma/client";
 const connectionString = process.env.DATABASE_URL;
 
 const prismaClientSingleton = () => {
-  // Production: Use Pool for connection pooling (Neon/AWS RDS friendly)
-  if (process.env.NODE_ENV === "production") {
     const pool = new Pool({ connectionString });
     const adapter = new PrismaPg(pool);
     return new PrismaClient({ adapter });
-  }
-
-  // Development: Standard connection
-  return new PrismaClient();
 };
 
 declare global {
