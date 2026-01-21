@@ -1,26 +1,69 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Base Background: #F8F4F0 */
+    --background: 30 27% 96%;
+    --foreground: 20 14.3% 4.1%;
+
+    /* Card Background: #FFFFFF */
+    --card: 0 0% 100%;
+    --card-foreground: 20 14.3% 4.1%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 14.3% 4.1%;
+
+    /* Primary: #FF6B00 (Orange) */
+    --primary: 25 100% 50%;
+    --primary-foreground: 60 9.1% 97.8%;
+
+    /* Secondary: #A8DADC (Light Blue) */
+    --secondary: 178 42% 76%;
+    --secondary-foreground: 24 9.8% 10%;
+
+    --muted: 60 4.8% 95.9%;
+    --muted-foreground: 25 5.3% 44.7%;
+
+    --accent: 60 4.8% 95.9%;
+    --accent-foreground: 24 9.8% 10%;
+
+    /* Error: #F44336 */
+    --destructive: 4 90% 58%;
+    --destructive-foreground: 60 9.1% 97.8%;
+
+    --border: 20 5.9% 90%;
+    --input: 20 5.9% 90%;
+    --ring: 25 100% 50%;
+
+    --radius: 0.5rem;
+    /* 8px as requested */
+  }
+
+  .dark {
+    /* Dark Mode presets (can be tweaked later) */
+    --background: 20 14.3% 4.1%;
+    --foreground: 60 9.1% 97.8%;
+    /* ... other dark mode overrides ... */
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading;
+  }
 }

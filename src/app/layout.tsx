@@ -1,29 +1,35 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Poppins } from 'next/font/google';
 import './globals.css';
-import { Providers } from './providers';
-import { Toaster } from 'sonner';
+import { cn } from '@/lib/utils';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const poppins = Poppins({
+  weight: ['400', '500', '600', '700'],
+  subsets: ['latin'],
+  variable: '--font-poppins',
+});
 
 export const metadata: Metadata = {
   title: 'Laya - Habit Tracker',
-  description: 'AI Powered Habit Tracking & Planning',
+  description: 'Build and maintain positive habits.',
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <Providers>
-          {children}
-          {/* Global Toast Notification Container */}
-          <Toaster position="top-center" richColors />
-        </Providers>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={cn(
+          'min-h-screen bg-neutral-50 font-sans antialiased',
+          inter.variable,
+          poppins.variable,
+        )}
+      >
+        {children}
       </body>
     </html>
   );
