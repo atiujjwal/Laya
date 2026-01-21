@@ -5,6 +5,7 @@ import { GoalDashboard } from "@/components/organisms/GoalDashboard";
 import { Button } from "@/components/atoms/button";
 import { Plus } from "lucide-react";
 import { Skeleton } from "@/components/atoms/Skeleton";
+import { GoalDialog } from "@/components/organisms/GoalDialog";
 
 export default function GoalsPage() {
   const { data: goals, isLoading } = useGoals();
@@ -25,9 +26,7 @@ export default function GoalsPage() {
             Track your long-term milestones.
           </p>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" /> New Goal
-        </Button>
+        <GoalDialog />
       </div>
 
       <GoalDashboard goals={goals || []} />

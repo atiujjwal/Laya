@@ -1,14 +1,14 @@
 // auth.ts
-import NextAuth from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import Credentials from "next-auth/providers/credentials";
-import Google from "next-auth/providers/google";
-import { prisma } from "@/lib/prisma";
-import { validateOTP } from "@/lib/tokens";
+import NextAuth from 'next-auth';
+import { PrismaAdapter } from '@auth/prisma-adapter';
+import Credentials from 'next-auth/providers/credentials';
+import Google from 'next-auth/providers/google';
+import { prisma } from '@/lib/prisma';
+import { validateOTP } from '@/lib/tokens';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt" }, // JWT is required for the Edge compatibility
+  session: { strategy: 'jwt' }, // JWT is required for the Edge compatibility
   providers: [
     // Google Provider (Critical for Phase 2 Sheets Sync)
     Google({
@@ -17,32 +17,39 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       authorization: {
         params: {
           scope:
-            "openid email profile https://www.googleapis.com/auth/drive.file",
-          access_type: "offline",
-          prompt: "consent", // Forces refresh token generation
+            'openid email profile https://www.googleapis.com/auth/drive.file',
+          access_type: 'offline',
+          prompt: 'consent', // Forces refresh token generation
         },
       },
     }),
 
     // Custom OTP Provider (Mobile/Email)
     Credentials({
-      name: "OTP",
+      name: 'OTP',
       credentials: {
-        identifier: { label: "Email or Phone", type: "text" },
-        code: { label: "OTP Code", type: "text" },
+        identifier: { label: 'Email or Phone', type: 'text' },
+        code: { label: 'OTP Code', type: 'text' },
       },
+
       async authorize(credentials) {
-        if (!credentials?.identifier || !credentials?.code) return null;
+        console.log('36: ++++++++++++++++++', credentials);
+
+        if (!credentials?.identifier || !credentials?.code) {
+          throw new Error('Missing email or OTP');
+        }
 
         const identifier = credentials.identifier as string;
         const code = credentials.code as string;
 
         // Verify the OTP against database
         const isValid = await validateOTP(identifier, code);
+        console.log('45: ', isValid);
 
         if (!isValid) {
-          throw new Error("Invalid or Expired OTP");
+          throw new Error('Invalid or Expired OTP');
         }
+        console.log('50: ', isValid);
 
         // Find or Create the user
         // We use 'upsert' to handle both signup and login seamlessly
@@ -53,10 +60,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           },
           create: {
             email: identifier,
-            name: identifier.split("@")[0], // Default name
+            name: identifier.split('@')[0], // Default name
             onboarding: true,
           },
         });
+
+        console.log('65: ', user);
 
         return user;
       },
@@ -80,7 +89,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
   pages: {
-    signIn: "/login", // Custom login page (we will build this in Phase 7)
-    error: "/error", // Error page
+    signIn: '/login', // Custom login page (we will build this in Phase 7)
+    error: '/error', // Error page
   },
 });

@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React from "react";
+import React from 'react';
 import {
   LineChart,
   Line,
@@ -13,9 +13,8 @@ import {
   Pie,
   Cell,
   Legend,
-} from "recharts";
+} from 'recharts';
 
-// Mock Data Interfaces - Replace with real API data types
 interface AnalyticsProps {
   trendData: Array<{ date: string; completionRate: number }>;
   distributionData: Array<{ name: string; value: number; color: string }>;
@@ -26,82 +25,103 @@ export const AnalyticsSection: React.FC<AnalyticsProps> = ({
   distributionData,
 }) => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-      {/* 1. Completion Trend Chart */}
-      <div className="border rounded-xl p-6 bg-card shadow-sm">
-        <h3 className="font-semibold mb-6">Monthly Completion Trend</h3>
-        <div className="h-[250px] w-full">
+    <div className="space-y-8">
+      {/* Chart 1: Trend Line */}
+      <div className="space-y-2">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Weekly Trend
+        </h3>
+        {/* EXPLICIT HEIGHT CONTAINER */}
+        <div className="h-[200px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={trendData}>
               <CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
-                stroke="#e5e7eb"
+                stroke="hsl(var(--border))"
               />
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 12, fill: "#6b7280" }}
+                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
                 axisLine={false}
                 tickLine={false}
+                dy={10}
               />
-              <YAxis
-                tick={{ fontSize: 12, fill: "#6b7280" }}
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(value) => `${value}%`}
-              />
+              <YAxis hide domain={[0, 100]} />
               <Tooltip
                 contentStyle={{
-                  borderRadius: "8px",
-                  border: "none",
-                  boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                  borderRadius: '8px',
+                  backgroundColor: 'hsl(var(--popover))',
+                  border: '1px solid hsl(var(--border))',
+                  color: 'hsl(var(--popover-foreground))',
+                  fontSize: '12px',
                 }}
               />
               <Line
                 type="monotone"
                 dataKey="completionRate"
-                stroke="#4F46E5"
+                stroke="hsl(var(--primary))"
                 strokeWidth={3}
-                dot={{ r: 4, fill: "#4F46E5", strokeWidth: 2, stroke: "#fff" }}
-                activeDot={{ r: 6 }}
+                dot={{ r: 3, fill: 'hsl(var(--primary))' }}
+                activeDot={{ r: 5 }}
               />
             </LineChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* 2. Category Distribution Chart */}
-      <div className="border rounded-xl p-6 bg-card shadow-sm">
-        <h3 className="font-semibold mb-6">Habit Distribution</h3>
-        <div className="h-[250px] w-full flex items-center justify-center">
+      {/* Chart 2: Distribution Pie */}
+      <div className="space-y-2">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Category Split
+        </h3>
+        {/* EXPLICIT HEIGHT CONTAINER */}
+        <div className="h-[200px] w-full relative">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={distributionData}
                 cx="50%"
                 cy="50%"
-                innerRadius={60}
-                outerRadius={80}
-                paddingAngle={5}
+                innerRadius={50}
+                outerRadius={70}
+                paddingAngle={4}
                 dataKey="value"
+                stroke="none"
               >
                 {distributionData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={entry.color}
-                    stroke="none"
-                  />
+                  <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip contentStyle={{ borderRadius: "8px", border: "none" }} />
+              <Tooltip
+                contentStyle={{
+                  borderRadius: '8px',
+                  border: 'none',
+                  fontSize: '12px',
+                }}
+              />
               <Legend
-                verticalAlign="bottom"
-                height={36}
+                verticalAlign="middle"
+                layout="vertical"
+                align="right"
                 iconType="circle"
-                wrapperStyle={{ fontSize: "12px" }}
+                wrapperStyle={{
+                  fontSize: '11px',
+                  color: 'hsl(var(--muted-foreground))',
+                }}
               />
             </PieChart>
           </ResponsiveContainer>
+
+          {/* Center Text Overlay */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none pr-[25%]">
+            <span className="text-2xl font-bold text-foreground">
+              {distributionData.reduce((a, b) => a + b.value, 0)}
+            </span>
+            <p className="text-[10px] text-muted-foreground uppercase">
+              Habits
+            </p>
+          </div>
         </div>
       </div>
     </div>
