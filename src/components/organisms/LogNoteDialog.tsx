@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -13,12 +14,16 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Loader2 } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 
 interface LogNoteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   date: Date | null;
   habitTitle?: string;
+  habitId?: string; // We need ID to save
+  initialNote?: string;
 }
 
 export function LogNoteDialog({
@@ -26,13 +31,35 @@ export function LogNoteDialog({
   onOpenChange,
   date,
   habitTitle,
+  habitId,
+  initialNote = '',
 }: LogNoteDialogProps) {
-  const [note, setNote] = useState('');
+  const [note, setNote] = useState(initialNote);
+  const queryClient = useQueryClient();
 
-  const handleSave = () => {
-    console.log(`Saving note for ${date}: ${note}`);
-    onOpenChange(false);
-  };
+  // Reset note when dialog opens with new data
+  useEffect(() => {
+    setNote(initialNote);
+  }, [initialNote, open]);
+
+  const saveNote = useMutation({
+    mutationFn: async () => {
+      if (!habitId || !date) return;
+      const res = await fetch(`/api/habits/${habitId}/note`, {
+        method: 'POST',
+        body: JSON.stringify({
+          date: date.toISOString().split('T')[0],
+          note: note,
+        }),
+      });
+      if (!res.ok) throw new Error('Failed');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['habits'] });
+      toast({ title: 'Note saved' });
+      onOpenChange(false);
+    },
+  });
 
   if (!date) return null;
 
@@ -61,7 +88,14 @@ export function LogNoteDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave} className="bg-primary text-white">
+          <Button
+            onClick={() => saveNote.mutate()}
+            className="bg-primary text-white"
+            disabled={saveNote.isPending}
+          >
+            {saveNote.isPending && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
             Save Note
           </Button>
         </DialogFooter>

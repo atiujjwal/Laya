@@ -4,7 +4,7 @@ import { useDayPlan, useGeneratePlan } from "@/lib/hooks/use-api";
 import { useLayaStore } from "@/lib/store";
 import { PlannerTimeline } from "@/components/organisms/PlannerTimeline";
 import { AIPlanCard } from "@/components/molecules/AIPlanCard";
-import { Button } from "@/components/atoms/button";
+import { Button } from "@/components/ui/button";
 import { Sparkles, Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 

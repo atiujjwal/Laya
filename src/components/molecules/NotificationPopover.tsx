@@ -2,13 +2,13 @@
 
 import React from 'react';
 import { Bell } from 'lucide-react';
-import { Button } from '@/components/atoms/button';
+import { Button } from '@/components/ui/button';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/atoms/popover';
-import { ScrollArea } from '@/components/atoms/scroll-area'; // Assumes shadcn ScrollArea
+} from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area'; // Assumes shadcn ScrollArea
 
 export function NotificationPopover() {
   // Mock notifications - in production, fetch from /api/notifications

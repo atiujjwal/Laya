@@ -1,7 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Trash2, X } from 'lucide-react';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { Plus, Trash2, Calendar as CalendarIcon, Loader2 } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -14,7 +17,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -28,32 +30,69 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { toast } from '@/components/ui/use-toast';
 
 export function AddGoalDialog() {
   const [open, setOpen] = useState(false);
-  const [steps, setSteps] = useState<string[]>(['']); // Start with 1 empty step
+  const queryClient = useQueryClient();
+
+  // State
+  const [title, setTitle] = useState('');
+  const [area, setArea] = useState('');
+  const [reward, setReward] = useState('');
   const [date, setDate] = useState<Date>();
+  const [steps, setSteps] = useState<string[]>(['']);
 
+  // Helpers
   const handleAddStep = () => setSteps([...steps, '']);
-
-  const handleRemoveStep = (index: number) => {
-    const newSteps = steps.filter((_, i) => i !== index);
-    setSteps(newSteps);
-  };
-
+  const handleRemoveStep = (index: number) =>
+    setSteps(steps.filter((_, i) => i !== index));
   const handleStepChange = (index: number, value: string) => {
     const newSteps = [...steps];
     newSteps[index] = value;
     setSteps(newSteps);
   };
 
+  const createGoal = useMutation({
+    mutationFn: async (payload: any) => {
+      const res = await fetch('/api/goals', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('Failed');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
+      toast({ title: 'Goal set successfully!' });
+      setOpen(false);
+      // Reset form
+      setTitle('');
+      setArea('');
+      setReward('');
+      setDate(undefined);
+      setSteps(['']);
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Submitting Goal:', { steps, date });
-    setOpen(false);
+    if (!title || !area || !date) {
+      toast({ title: 'Missing required fields', variant: 'destructive' });
+      return;
+    }
+
+    const payload = {
+      title,
+      area,
+      reward,
+      deadline: date.toISOString(),
+      steps: steps
+        .filter((s) => s.trim() !== '')
+        .map((s) => ({ text: s, isCompleted: false })),
+    };
+
+    createGoal.mutate(payload);
   };
 
   return (
@@ -67,37 +106,47 @@ export function AddGoalDialog() {
         <DialogHeader>
           <DialogTitle>Set a New Goal</DialogTitle>
           <DialogDescription>
-            Define your aspiration, actionable steps, and a reward for yourself.
+            Define your aspiration and actionable steps.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-6 py-4">
-          {/* Main Info */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Goal Title</Label>
-              <Input id="title" placeholder="e.g., Run a Marathon" required />
+              <Label>Goal Title</Label>
+              <Input
+                placeholder="e.g., Run a Marathon"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="area">Area of Life</Label>
-              <Select>
+              <Label>Area of Life</Label>
+              <Select value={area} onValueChange={setArea}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select area" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="health">Health & Wellness</SelectItem>
-                  <SelectItem value="finance">Finances</SelectItem>
-                  <SelectItem value="career">Career</SelectItem>
-                  <SelectItem value="personal">Personal Growth</SelectItem>
+                  <SelectItem value="Health">Health & Wellness</SelectItem>
+                  <SelectItem value="Finances">Finances</SelectItem>
+                  <SelectItem value="Career">Career</SelectItem>
+                  <SelectItem value="Personal Growth">
+                    Personal Growth
+                  </SelectItem>
+                  <SelectItem value="Relationships">Relationships</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* Reward & Deadline */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="reward">Reward</Label>
-              <Input id="reward" placeholder="e.g., New Running Shoes" />
+              <Label>Reward</Label>
+              <Input
+                placeholder="e.g., New Shoes"
+                value={reward}
+                onChange={(e) => setReward(e.target.value)}
+              />
             </div>
             <div className="space-y-2 flex flex-col">
               <Label className="mb-2">Target Deadline</Label>
@@ -126,7 +175,6 @@ export function AddGoalDialog() {
             </div>
           </div>
 
-          {/* Dynamic Steps Section */}
           <div className="space-y-3 border-t pt-4">
             <div className="flex items-center justify-between">
               <Label>Actionable Steps</Label>
@@ -143,9 +191,9 @@ export function AddGoalDialog() {
             <div className="space-y-2">
               {steps.map((step, index) => (
                 <div key={index} className="flex gap-2">
-                  <div className="flex-none pt-2.5 text-xs text-muted-foreground font-medium w-4">
+                  <span className="flex-none pt-2.5 text-xs text-muted-foreground font-medium w-4">
                     {index + 1}.
-                  </div>
+                  </span>
                   <Input
                     value={step}
                     onChange={(e) => handleStepChange(index, e.target.value)}
@@ -169,7 +217,14 @@ export function AddGoalDialog() {
           </div>
 
           <DialogFooter>
-            <Button type="submit" className="w-full sm:w-auto bg-primary">
+            <Button
+              type="submit"
+              className="w-full sm:w-auto bg-primary"
+              disabled={createGoal.isPending}
+            >
+              {createGoal.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               Create Goal
             </Button>
           </DialogFooter>

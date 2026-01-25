@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Button } from "@/components/atoms/button";
+import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle, Sparkles, LayoutGrid } from "lucide-react";
 
 export default function LandingPage() {

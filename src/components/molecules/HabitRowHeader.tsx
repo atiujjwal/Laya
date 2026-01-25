@@ -1,12 +1,12 @@
 import React from "react";
-import { Badge } from "@/components/atoms/Badge";
+// import { Badge } from "@/components/ui/Badge";
 import { MoreHorizontal, Edit2, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/atoms/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 
 interface HabitRowHeaderProps {
   title: string;

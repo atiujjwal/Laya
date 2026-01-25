@@ -1,62 +1,145 @@
-"use client";
+'use client';
 
-import { useSession } from "next-auth/react";
-import { Button } from "@/components/atoms/button";
-import { Input } from "@/components/atoms/input";
-import { Avatar } from "@/components/atoms/Avatar";
+import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Bell, Moon, Globe, Shield } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { data: session } = useSession();
-
   return (
-    <div className="max-w-2xl space-y-8">
-      <h1 className="text-2xl font-bold">Account Settings</h1>
-
-      {/* Profile Card */}
-      <div className="p-6 border rounded-xl bg-card flex items-center gap-6">
-        <Avatar
-          src={session?.user?.image}
-          fallback={session?.user?.name || "U"}
-          size="lg"
-        />
-        <div>
-          <h3 className="font-bold text-lg">{session?.user?.name}</h3>
-          <p className="text-muted-foreground">{session?.user?.email}</p>
-        </div>
-        <Button variant="outline" className="ml-auto">
-          Change Avatar
-        </Button>
-      </div>
-
-      {/* Preferences Form */}
-      <div className="space-y-4 p-6 border rounded-xl bg-card">
-        <h3 className="font-semibold">Preferences</h3>
-        <div className="grid gap-2">
-          <label className="text-sm font-medium">Timezone</label>
-          <Input
-            defaultValue={Intl.DateTimeFormat().resolvedOptions().timeZone}
-          />
-        </div>
-
-        <div className="pt-4">
-          <Button>Save Changes</Button>
-        </div>
-      </div>
-
-      {/* Data Export (Phase 5 Requirement) */}
-      <div className="p-6 border border-destructive/20 bg-destructive/5 rounded-xl">
-        <h3 className="font-semibold text-destructive mb-2">
-          Data Sovereignty
-        </h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          Download a complete copy of your habit history and logs.
+    <div className="space-y-6 max-w-4xl">
+      <div>
+        <h1 className="text-3xl font-heading font-bold">Settings</h1>
+        <p className="text-muted-foreground">
+          Manage your app preferences and account security.
         </p>
-        <Button
-          variant="destructive"
-          onClick={() => window.open("/api/export", "_blank")}
-        >
-          Download All Data (CSV)
-        </Button>
+      </div>
+
+      <Separator />
+
+      <div className="grid gap-6">
+        {/* Appearance Section */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Moon className="h-5 w-5 text-primary" />
+              <CardTitle>Appearance</CardTitle>
+            </div>
+            <CardDescription>
+              Customize how Laya looks on your device.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="theme">Interface Theme</Label>
+              <Select defaultValue="light">
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select theme" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="light">Light Mode</SelectItem>
+                  <SelectItem value="dark">Dark Mode</SelectItem>
+                  <SelectItem value="system">System Default</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Compact Mode</Label>
+                <p className="text-xs text-muted-foreground">
+                  Reduce whitespace in the habit grid.
+                </p>
+              </div>
+              <Switch />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Notifications Section */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Bell className="h-5 w-5 text-primary" />
+              <CardTitle>Notifications</CardTitle>
+            </div>
+            <CardDescription>
+              Configure how you want to be reminded.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Daily Check-in</Label>
+                <p className="text-xs text-muted-foreground">
+                  Receive a reminder at 9:00 AM.
+                </p>
+              </div>
+              <Switch defaultChecked />
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Streak Alerts</Label>
+                <p className="text-xs text-muted-foreground">
+                  Get notified when you are about to break a streak.
+                </p>
+              </div>
+              <Switch defaultChecked />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Data Section */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              <CardTitle>Data & Privacy</CardTitle>
+            </div>
+            <CardDescription>
+              Manage your data storage and exports.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Export Data</Label>
+                <p className="text-xs text-muted-foreground">
+                  Download all your habit logs as CSV.
+                </p>
+              </div>
+              <Button variant="outline" size="sm">
+                Export CSV
+              </Button>
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-destructive">Delete Account</Label>
+                <p className="text-xs text-muted-foreground">
+                  Permanently remove all your data.
+                </p>
+              </div>
+              <Button variant="destructive" size="sm">
+                Delete Account
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

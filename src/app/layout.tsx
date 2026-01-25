@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, Poppins } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
+import { Providers } from '@/components/providers';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const poppins = Poppins({
@@ -22,14 +23,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={cn(
-          'min-h-screen bg-neutral-50 font-sans antialiased',
-          inter.variable,
-          poppins.variable,
-        )}
-      >
-        {children}
+      <body>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
