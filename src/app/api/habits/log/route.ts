@@ -46,6 +46,21 @@ export const POST = secureRoute(async (req, session) => {
       },
     });
 
+    // Calculate and store XP if completed
+    if (completed) {
+      const { calculateXP } = await import('@/lib/xp');
+      const xpResult = calculateXP({
+        baseTime: 30, // Default 30 minutes per habit
+        priority: 3, // Default priority (can be enhanced later)
+        currentStreak: habit.currentStreak,
+        focusBonus: 10,
+      });
+
+      // Store XP in a separate table or update user's total XP
+      // For now, we'll just log it (can be enhanced with XP table later)
+      console.log(`XP earned: ${xpResult.xp} for habit ${habitId}`);
+    }
+
     // TODO: Trigger Async Job here to update "Streaks" (Phase 6)
 
     return NextResponse.json(log);

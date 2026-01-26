@@ -4,48 +4,90 @@
 
 @layer base {
   :root {
-    /* Base Background: #F8F4F0 */
-    --background: 30 27% 96%;
-    --foreground: 20 14.3% 4.1%;
+    /* Pastel Palette Strategy - High value, low saturation for reduced eye strain */
+    /* Base Background: Soft cream/beige */
+    --background: 30 20% 97%;
+    --foreground: 20 10% 8%;
 
-    /* Card Background: #FFFFFF */
+    /* Card Background: Pure white with subtle tint */
     --card: 0 0% 100%;
-    --card-foreground: 20 14.3% 4.1%;
+    --card-foreground: 20 10% 8%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 20 14.3% 4.1%;
+    --popover-foreground: 20 10% 8%;
 
-    /* Primary: #FF6B00 (Orange) */
-    --primary: 25 100% 50%;
-    --primary-foreground: 60 9.1% 97.8%;
+    /* Primary: Soft coral/orange - pastel */
+    --primary: 15 85% 65%;
+    --primary-foreground: 0 0% 98%;
 
-    /* Secondary: #A8DADC (Light Blue) */
-    --secondary: 178 42% 76%;
-    --secondary-foreground: 24 9.8% 10%;
+    /* Secondary: Soft mint/blue - pastel */
+    --secondary: 160 35% 75%;
+    --secondary-foreground: 20 10% 15%;
 
-    --muted: 60 4.8% 95.9%;
-    --muted-foreground: 25 5.3% 44.7%;
+    /* Muted: Very light gray with warm tint */
+    --muted: 30 15% 94%;
+    --muted-foreground: 20 8% 45%;
 
-    --accent: 60 4.8% 95.9%;
-    --accent-foreground: 24 9.8% 10%;
+    /* Accent: Soft lavender - pastel */
+    --accent: 280 25% 85%;
+    --accent-foreground: 20 10% 15%;
 
-    /* Error: #F44336 */
-    --destructive: 4 90% 58%;
-    --destructive-foreground: 60 9.1% 97.8%;
+    /* Error: Soft red - pastel */
+    --destructive: 5 70% 70%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 20 5.9% 90%;
-    --input: 20 5.9% 90%;
-    --ring: 25 100% 50%;
+    /* Success: Soft green - pastel */
+    --success: 140 40% 65%;
+    --success-foreground: 0 0% 98%;
+
+    /* Warning: Soft yellow - pastel */
+    --warning: 45 80% 75%;
+    --warning-foreground: 20 10% 15%;
+
+    --border: 30 15% 88%;
+    --input: 30 15% 92%;
+    --ring: 15 85% 65%;
 
     --radius: 0.5rem;
-    /* 8px as requested */
   }
 
   .dark {
-    /* Dark Mode presets (can be tweaked later) */
-    --background: 20 14.3% 4.1%;
-    --foreground: 60 9.1% 97.8%;
-    /* ... other dark mode overrides ... */
+    /* Dark Mode - Pastel preserved with darker backgrounds */
+    --background: 220 15% 12%;
+    --foreground: 30 10% 92%;
+
+    --card: 220 12% 15%;
+    --card-foreground: 30 10% 92%;
+
+    --popover: 220 12% 15%;
+    --popover-foreground: 30 10% 92%;
+
+    /* Primary: Brighter but still pastel in dark mode */
+    --primary: 15 75% 70%;
+    --primary-foreground: 220 15% 12%;
+
+    /* Secondary: Softer mint for dark */
+    --secondary: 160 30% 60%;
+    --secondary-foreground: 30 10% 92%;
+
+    --muted: 220 10% 20%;
+    --muted-foreground: 30 8% 65%;
+
+    --accent: 280 20% 70%;
+    --accent-foreground: 30 10% 92%;
+
+    --destructive: 5 65% 65%;
+    --destructive-foreground: 30 10% 92%;
+
+    --success: 140 35% 60%;
+    --success-foreground: 30 10% 92%;
+
+    --warning: 45 70% 70%;
+    --warning-foreground: 220 15% 12%;
+
+    --border: 220 10% 25%;
+    --input: 220 10% 22%;
+    --ring: 15 75% 70%;
   }
 }
 
