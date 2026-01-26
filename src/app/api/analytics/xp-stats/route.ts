@@ -1,17 +1,11 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/auth';
+import { secureRoute } from '@/lib/proxy';
 import { prisma } from '@/lib/prisma';
 import { calculateXP, calculateLevel } from '@/lib/xp';
 
-export async function GET() {
+export const GET = secureRoute(async (req, session) => {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const userId = session.user.id;
+    const userId = session?.user?.id!;
 
     // Fetch all completed logs
     const logs = await prisma.habitLog.findMany({
@@ -51,4 +45,4 @@ export async function GET() {
       { status: 500 }
     );
   }
-}
+});

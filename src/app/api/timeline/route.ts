@@ -1,17 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/auth';
+import { NextResponse } from 'next/server';
+import { secureRoute } from '@/lib/proxy';
 import { prisma } from '@/lib/prisma';
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
 
-export async function GET(request: NextRequest) {
+export const GET = secureRoute(async (req, session) => {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const searchParams = request.nextUrl.searchParams;
+    const { searchParams } = new URL(req.url);
     const dateStr = searchParams.get('date');
     
     if (!dateStr) {
@@ -22,7 +16,7 @@ export async function GET(request: NextRequest) {
     const dayStart = startOfDay(date);
     const dayEnd = endOfDay(date);
 
-    const userId = session.user.id;
+    const userId = session?.user?.id!;
 
     // Fetch day plan
     const dayPlan = await prisma.dayPlan.findUnique({
@@ -75,4 +69,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

@@ -131,8 +131,8 @@ export const AnalyticsHub: React.FC<AnalyticsHubProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[300px] w-full min-h-[300px]">
+            <ResponsiveContainer width="100%" height={300}>
               <LineChart data={xpTrend}>
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -183,8 +183,8 @@ export const AnalyticsHub: React.FC<AnalyticsHubProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] w-full relative">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[300px] w-full min-h-[300px] relative">
+            <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
                   data={categoryBreakdown}

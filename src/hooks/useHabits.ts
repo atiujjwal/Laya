@@ -32,9 +32,9 @@ export function useHabits() {
   const queryKey = ['habits'];
 
   // 1. Fetch Habits
-  const query = useQuery<Habit[]>({
+  const query = useQuery<{ data: Habit[]; page: number; limit: number }>({
     queryKey,
-    queryFn: () => fetcher<Habit[]>('/api/habits'),
+    queryFn: () => fetcher<{ data: Habit[]; page: number; limit: number }>('/api/habits'),
     staleTime: 1000 * 60 * 5, // Data is fresh for 5 minutes
   });
 
@@ -59,30 +59,36 @@ export function useHabits() {
       await queryClient.cancelQueries({ queryKey });
 
       // Snapshot the previous value
-      const previousHabits = queryClient.getQueryData<Habit[]>(queryKey);
+      const previousHabits = queryClient.getQueryData<{ data: Habit[] }>(queryKey);
 
       // Optimistically update to the new value
-      queryClient.setQueryData<Habit[]>(queryKey, (old) => {
-        if (!old) return [];
-        return old.map((h) => {
+      queryClient.setQueryData<{ data: Habit[] }>(queryKey, (old) => {
+        if (!old || !old.data) return { data: [] };
+        return {
+          ...old,
+          data: old.data.map((h) => {
           if (h.id !== id) return h;
 
           const dateStr = date.toISOString().split('T')[0];
-          const logIndex = h.logs.findIndex((l) => l.date === dateStr);
+          const logIndex = (h.logs || []).findIndex((l: any) => {
+            const logDate = typeof l.date === 'string' ? l.date : l.date.toISOString().split('T')[0];
+            return logDate === dateStr;
+          });
 
           let newLogs;
           // Toggle logic: If exists, remove it. If not, add it.
           if (logIndex > -1) {
-            newLogs = h.logs.filter((_, i) => i !== logIndex);
+            newLogs = (h.logs || []).filter((_: any, i: number) => i !== logIndex);
           } else {
             newLogs = [
-              ...h.logs,
-              { date: dateStr, status: 'completed' as const },
+              ...(h.logs || []),
+              { date: new Date(dateStr), completed: true, status: 'completed' as const },
             ];
           }
 
-          return { ...h, logs: newLogs };
-        });
+            return { ...h, logs: newLogs };
+          }),
+        };
       });
 
       // Return a context object with the snapshotted value
@@ -154,7 +160,7 @@ export function useHabits() {
   });
 
   return {
-    habits: query.data || [], // Return empty array if undefined to prevent UI crashes
+    habits: query.data?.data || [], // Extract data array from response
     isLoading: query.isLoading,
     isError: query.isError,
     error: query.error,

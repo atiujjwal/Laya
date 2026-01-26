@@ -1,25 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/auth';
+import { NextResponse } from 'next/server';
+import { secureRoute } from '@/lib/proxy';
 import { prisma } from '@/lib/prisma';
-import { parseISO } from 'date-fns';
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export const PATCH = secureRoute(async (req, session) => {
+  const taskId = req.url.split('/').pop();
+  
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const body = await request.json();
+    const body = await req.json();
     const { isLocked, ...otherUpdates } = body;
 
     // In a real implementation, you would update the task in the day plan schedule
     // For now, we'll return success
-    return NextResponse.json({ success: true, id: params.id, ...otherUpdates });
+    return NextResponse.json({ success: true, id: taskId, ...otherUpdates });
   } catch (error: any) {
     console.error('Update timeline task error:', error);
     return NextResponse.json(
@@ -27,20 +19,14 @@ export async function PATCH(
       { status: 500 }
     );
   }
-}
+});
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export const DELETE = secureRoute(async (req, session) => {
+  const taskId = req.url.split('/').pop();
+  
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     // In a real implementation, you would remove the task from the day plan schedule
-    return NextResponse.json({ success: true, id: params.id });
+    return NextResponse.json({ success: true, id: taskId });
   } catch (error: any) {
     console.error('Delete timeline task error:', error);
     return NextResponse.json(
@@ -48,4 +34,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-}
+});

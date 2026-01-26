@@ -33,7 +33,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
 
       async authorize(credentials) {
-        console.log('36: ++++++++++++++++++', credentials);
 
         if (!credentials?.identifier || !credentials?.code) {
           throw new Error('Missing email or OTP');
@@ -44,12 +43,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         // Verify the OTP against database
         const isValid = await validateOTP(identifier, code);
-        console.log('45: ', isValid);
 
         if (!isValid) {
           throw new Error('Invalid or Expired OTP');
         }
-        console.log('50: ', isValid);
 
         // Find or Create the user
         // We use 'upsert' to handle both signup and login seamlessly
@@ -64,8 +61,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             onboarding: true,
           },
         });
-
-        console.log('65: ', user);
 
         return user;
       },

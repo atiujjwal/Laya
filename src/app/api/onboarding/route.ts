@@ -1,17 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/auth';
+import { NextResponse } from 'next/server';
+import { secureRoute } from '@/lib/proxy';
 import { prisma } from '@/lib/prisma';
 
-export async function POST(request: NextRequest) {
+export const POST = secureRoute(async (req, session) => {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const userId = session.user.id;
-    const body = await request.json();
+    const userId = session?.user?.id!;
+    const body = await req.json();
     const { goals, habits, preferences } = body;
 
     // Create goals
@@ -72,4 +66,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

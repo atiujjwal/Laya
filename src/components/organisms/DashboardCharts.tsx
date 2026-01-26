@@ -50,8 +50,8 @@ export function DashboardCharts() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[200px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[200px] w-full min-h-[200px]">
+            <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient

@@ -32,8 +32,8 @@ export const AnalyticsSection: React.FC<AnalyticsProps> = ({
           Weekly Trend
         </h3>
         {/* EXPLICIT HEIGHT CONTAINER */}
-        <div className="h-[200px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-[200px] w-full min-h-[200px]">
+          <ResponsiveContainer width="100%" height={200}>
             <LineChart data={trendData}>
               <CartesianGrid
                 strokeDasharray="3 3"
@@ -76,8 +76,8 @@ export const AnalyticsSection: React.FC<AnalyticsProps> = ({
           Category Split
         </h3>
         {/* EXPLICIT HEIGHT CONTAINER */}
-        <div className="h-[200px] w-full relative">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-[200px] w-full min-h-[200px] relative">
+          <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie
                 data={distributionData}

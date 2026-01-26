@@ -31,14 +31,14 @@ export default function DashboardPage() {
   const updateTask = useUpdateTimelineTask();
 
   // Convert habits to habit matrix format
-  const habitMatrixData = habits.map((habit) => ({
+  const habitMatrixData = Array.isArray(habits) ? habits.map((habit: any) => ({
     habitId: habit.id,
     habitTitle: habit.title,
     habitColor: habit.color || 'hsl(var(--primary))',
-    completions: habit.logs
-      .filter((log) => log.status === 'completed')
-      .map((log) => new Date(log.date)),
-  }));
+    completions: (habit.logs || [])
+      .filter((log: any) => log.completed === true)
+      .map((log: any) => new Date(log.date)),
+  })) : [];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
