@@ -31,6 +31,10 @@ export function useHabits() {
   const queryClient = useQueryClient();
   const queryKey = ['habits'];
 
+  // Normalize a local calendar day to UTC midnight (stable across timezones)
+  const toUtcMidnightIso = (d: Date) =>
+    new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0)).toISOString();
+
   // 1. Fetch Habits
   const query = useQuery<{ data: Habit[]; page: number; limit: number }>({
     queryKey,
@@ -41,13 +45,20 @@ export function useHabits() {
   // 2. Toggle Habit Completion (Optimistic Update)
   const toggleMutation = useMutation({
     mutationFn: async ({ id, date }: { id: string; date: Date }) => {
-      // API expects YYYY-MM-DD
-      const dateStr = date.toISOString().split('T')[0];
+      // Send UTC-midnight ISO so the server upsert key is stable
+      // and the UI doesn't "shift" to the previous day.
+      const iso = toUtcMidnightIso(date);
 
-      const res = await fetch(`/api/habits/${id}/log`, {
+      const res = await fetch(`/api/habits/log`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: dateStr }),
+        body: JSON.stringify({
+          habitId: id,
+          date: iso,
+          value: 1,
+          completed: true,
+          meta: {},
+        }),
       });
 
       if (!res.ok) throw new Error('Failed to update status');
@@ -69,10 +80,13 @@ export function useHabits() {
           data: old.data.map((h) => {
           if (h.id !== id) return h;
 
-          const dateStr = date.toISOString().split('T')[0];
+          const iso = toUtcMidnightIso(date);
           const logIndex = (h.logs || []).findIndex((l: any) => {
-            const logDate = typeof l.date === 'string' ? l.date : l.date.toISOString().split('T')[0];
-            return logDate === dateStr;
+            const logIso =
+              typeof l.date === 'string'
+                ? new Date(l.date).toISOString()
+                : l.date.toISOString();
+            return logIso.slice(0, 10) === iso.slice(0, 10);
           });
 
           let newLogs;
@@ -82,7 +96,11 @@ export function useHabits() {
           } else {
             newLogs = [
               ...(h.logs || []),
-              { date: new Date(dateStr), completed: true, status: 'completed' as const },
+              {
+                date: iso,
+                completed: true,
+                status: 'completed' as const,
+              },
             ];
           }
 

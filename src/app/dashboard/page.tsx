@@ -16,7 +16,7 @@ import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function DashboardPage() {
-  const { habits, isLoading: habitsLoading } = useHabits();
+  const { habits, isLoading: habitsLoading, toggleHabit } = useHabits();
   const { data: stats, isLoading: statsLoading } = useStats();
   const { currentDate } = useLayaStore();
   const [viewMode, setViewMode] = useState<'grid' | 'classic'>('grid');
@@ -31,14 +31,21 @@ export default function DashboardPage() {
   const updateTask = useUpdateTimelineTask();
 
   // Convert habits to habit matrix format
-  const habitMatrixData = Array.isArray(habits) ? habits.map((habit: any) => ({
-    habitId: habit.id,
-    habitTitle: habit.title,
-    habitColor: habit.color || 'hsl(var(--primary))',
-    completions: (habit.logs || [])
-      .filter((log: any) => log.completed === true)
-      .map((log: any) => new Date(log.date)),
-  })) : [];
+  const habitMatrixData = Array.isArray(habits)
+    ? habits.map((habit: any) => ({
+        habitId: habit.id,
+        habitTitle: habit.title,
+        habitColor: habit.color || 'hsl(var(--primary))',
+        // Normalize dates from server (stored as UTC) into local dates so
+        // the matrix does not show "previous day" in certain timezones.
+        completions: (habit.logs || [])
+          .filter((log: any) => log.completed === true)
+          .map((log: any) => {
+            const d = new Date(log.date);
+            return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+          }),
+      }))
+    : [];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -140,6 +147,10 @@ export default function DashboardPage() {
           onDayClick={(date) => {
             // Navigate to that day or update current date
             console.log('Day clicked:', date);
+          }}
+          onHabitCellClick={(habitId, date) => {
+            // Use the existing toggleHabit mutation so Matrix + main grid stay in sync
+            toggleHabit({ id: habitId, date });
           }}
         />
       ) : (

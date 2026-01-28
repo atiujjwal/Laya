@@ -8,7 +8,12 @@ import { validateOTP } from '@/lib/tokens';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
-  session: { strategy: 'jwt' }, // JWT is required for the Edge compatibility
+  // Production-ready JWT session configuration
+  session: {
+    strategy: 'jwt', // Required for edge/runtime flexibility
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // Refresh token once per day while active
+  },
   providers: [
     // Google Provider (Critical for Phase 2 Sheets Sync)
     Google({
@@ -84,7 +89,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
   pages: {
-    signIn: '/login', // Custom login page (we will build this in Phase 7)
-    error: '/error', // Error page
+    signIn: '/login',
+    // Let NextAuth surface auth errors via the login page query string
+    // instead of hard-navigating to a separate error route.
   },
 });

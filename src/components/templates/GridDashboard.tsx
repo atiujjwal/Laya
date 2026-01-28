@@ -32,6 +32,7 @@ interface GridDashboardProps {
   onTaskUpdate?: (taskId: string, updates: Partial<TimelineTask>) => void;
   onTaskMove?: (taskId: string, newStartTime: Date, newEndTime: Date) => void;
   onDayClick?: (date: Date) => void;
+  onHabitCellClick?: (habitId: string, date: Date) => void;
 }
 
 export const GridDashboard: React.FC<GridDashboardProps> = ({
@@ -47,6 +48,7 @@ export const GridDashboard: React.FC<GridDashboardProps> = ({
   onTaskUpdate,
   onTaskMove,
   onDayClick,
+  onHabitCellClick,
 }) => {
   const [minimizedTiles, setMinimizedTiles] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<'7day' | '30day'>('7day');
@@ -190,6 +192,7 @@ export const GridDashboard: React.FC<GridDashboardProps> = ({
                 habits={habitMatrixData}
                 viewMode={viewMode}
                 startDate={date}
+                onCellClick={onHabitCellClick}
               />
             </CardContent>
           </Card>

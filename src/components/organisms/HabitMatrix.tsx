@@ -70,7 +70,7 @@ export const HabitMatrix: React.FC<HabitMatrixProps> = ({
 
   return (
     <div className="w-full bg-card border rounded-xl p-6 space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-xl font-heading font-semibold">Habit Matrix</h2>
           <p className="text-sm text-muted-foreground">
@@ -90,9 +90,9 @@ export const HabitMatrix: React.FC<HabitMatrixProps> = ({
       </div>
 
       <div className="overflow-x-auto">
-        <div className="inline-block min-w-full">
-          <table className="w-full border-collapse">
-            <thead>
+        <div className="inline-block min-w-full align-middle">
+          <table className="w-full border-collapse text-xs sm:text-sm">
+            <thead className="bg-muted/40">
               <tr>
                 <th className="text-left text-xs font-semibold text-muted-foreground p-2 sticky left-0 bg-card z-10">
                   Habit
@@ -102,7 +102,8 @@ export const HabitMatrix: React.FC<HabitMatrixProps> = ({
                     key={format(date, 'yyyy-MM-dd')}
                     className="text-center text-xs font-semibold text-muted-foreground p-2 min-w-[40px]"
                   >
-                    {format(date, 'EEE')}
+                    {/* Two-letter day name, e.g. Mo, Tu, We */}
+                    {format(date, 'EEE').slice(0, 2)}
                     <br />
                     <span className="text-[10px]">{format(date, 'd')}</span>
                   </th>
@@ -113,80 +114,77 @@ export const HabitMatrix: React.FC<HabitMatrixProps> = ({
               </tr>
             </thead>
             <tbody>
-              {habits.map((habit) => {
-                const completionRate = getCompletionRate(habit.habitId);
-                const isToday = (date: Date) => isSameDay(date, new Date());
+              <TooltipProvider>
+                {habits.map((habit) => {
+                  const completionRate = getCompletionRate(habit.habitId);
+                  const isToday = (date: Date) => isSameDay(date, new Date());
 
-                return (
-                  <tr key={habit.habitId} className="border-t">
-                    <td className="p-2 sticky left-0 bg-card z-10">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{
-                            backgroundColor: habit.habitColor || 'hsl(var(--primary))',
-                          }}
-                        />
-                        <span className="text-sm font-medium truncate max-w-[150px]">
-                          {habit.habitTitle}
+                  return (
+                    <tr key={habit.habitId} className="border-t hover:bg-muted/20">
+                      <td className="p-2 sticky left-0 bg-card z-10">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-3 h-3 rounded-full flex-shrink-0"
+                            style={{
+                              backgroundColor: habit.habitColor || 'hsl(var(--primary))',
+                            }}
+                          />
+                          <span className="text-sm font-medium truncate max-w-[150px] sm:max-w-[220px]">
+                            {habit.habitTitle}
+                          </span>
+                        </div>
+                      </td>
+                      {dateRange.map((date) => {
+                        const completed = isCompleted(habit.habitId, date);
+                        const today = isToday(date);
+
+                          return (
+                            <td
+                              key={format(date, 'yyyy-MM-dd')}
+                              className="p-1 sm:p-2 text-center align-middle"
+                            >
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    type="button"
+                                    className={cn(
+                                      'w-6 h-6 sm:w-7 sm:h-7 mx-auto rounded-full flex items-center justify-center cursor-pointer transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1',
+                                      completed
+                                        ? 'bg-primary text-primary-foreground'
+                                        : 'bg-muted border border-border',
+                                      today && 'ring-2 ring-primary ring-offset-1'
+                                    )}
+                                    onClick={() => onCellClick?.(habit.habitId, date)}
+                                  >
+                                    {completed && (
+                                      <span className="text-[10px] font-semibold">✓</span>
+                                    )}
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-xs">
+                                  <div className="text-xs">
+                                    <p className="font-semibold">{habit.habitTitle}</p>
+                                    <p className="text-muted-foreground">
+                                      {format(date, 'MMM d, yyyy')}
+                                    </p>
+                                    <p className="text-muted-foreground">
+                                      {completed ? 'Completed' : 'Not completed'}
+                                    </p>
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            </td>
+                          );
+                      })}
+                      <td className="p-2 text-center whitespace-nowrap">
+                        <span className="text-sm font-semibold">
+                          {Math.round(completionRate)}%
                         </span>
-                      </div>
-                    </td>
-                    {dateRange.map((date) => {
-                      const completed = isCompleted(habit.habitId, date);
-                      const today = isToday(date);
-
-                      return (
-                        <TooltipProvider key={format(date, 'yyyy-MM-dd')}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <td
-                                className={cn(
-                                  'p-2 text-center cursor-pointer transition-all hover:scale-110',
-                                  completed
-                                    ? 'bg-primary/20'
-                                    : 'bg-muted/30',
-                                  today && 'ring-2 ring-primary ring-offset-1'
-                                )}
-                                onClick={() => onCellClick?.(habit.habitId, date)}
-                              >
-                                <div
-                                  className={cn(
-                                    'w-6 h-6 mx-auto rounded-full flex items-center justify-center',
-                                    completed
-                                      ? 'bg-primary'
-                                      : 'bg-muted border border-border'
-                                  )}
-                                >
-                                  {completed && (
-                                    <span className="text-white text-xs">✓</span>
-                                  )}
-                                </div>
-                              </td>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <div className="text-xs">
-                                <p className="font-semibold">{habit.habitTitle}</p>
-                                <p className="text-muted-foreground">
-                                  {format(date, 'MMM d, yyyy')}
-                                </p>
-                                <p className="text-muted-foreground">
-                                  {completed ? 'Completed' : 'Not completed'}
-                                </p>
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      );
-                    })}
-                    <td className="p-2 text-center">
-                      <span className="text-sm font-semibold">
-                        {Math.round(completionRate)}%
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </TooltipProvider>
             </tbody>
           </table>
         </div>

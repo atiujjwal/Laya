@@ -1,7 +1,6 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { format, subDays, startOfYear, endOfYear, eachDayOfInterval } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
 import { XPData, CategoryBreakdown } from '@/components/organisms/AnalyticsHub';
 import { ContributionData } from '@/components/organisms/ContributionGraph';
 
@@ -36,7 +35,17 @@ export function useAnalytics(year?: number) {
   
   return useQuery<AnalyticsData>({
     queryKey: ['analytics', targetYear],
-    queryFn: () => fetcher<AnalyticsData>(`/api/analytics?year=${targetYear}`),
+    queryFn: async () => {
+      const raw = await fetcher<AnalyticsData>(`/api/analytics?year=${targetYear}`);
+
+      // Ensure contribution dates are real Date instances for reliable comparisons/highlighting
+      const contributionData: ContributionData[] = raw.contributionData.map((item) => ({
+        ...item,
+        date: new Date(item.date),
+      }));
+
+      return { ...raw, contributionData };
+    },
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
@@ -60,7 +69,15 @@ export function useContributionData(year?: number) {
   
   return useQuery<ContributionData[]>({
     queryKey: ['contribution', targetYear],
-    queryFn: () => fetcher<ContributionData[]>(`/api/analytics/contribution?year=${targetYear}`),
+    queryFn: async () => {
+      const raw = await fetcher<ContributionData[]>(`/api/analytics/contribution?year=${targetYear}`);
+
+      // Normalize to Date objects so the graph colors and "today" highlighting work correctly
+      return raw.map((item) => ({
+        ...item,
+        date: new Date(item.date),
+      }));
+    },
     staleTime: 1000 * 60 * 10, // 10 minutes
   });
 }
