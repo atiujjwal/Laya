@@ -64,7 +64,7 @@ export default function HabitsPage() {
   });
 
   // Filter Logic
-  const filteredHabits = habits.filter(
+  const filteredHabits = habits?.filter(
     (h) =>
       h.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       h.category.toLowerCase().includes(searchTerm.toLowerCase()),
