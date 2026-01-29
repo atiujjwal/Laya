@@ -15,7 +15,8 @@ import { useHabits } from '@/hooks/useData';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function DashboardCharts() {
-  const { data: habits, isLoading } = useHabits();
+  const { data, isLoading } = useHabits();
+  const habits = data?.data ?? [];
 
   // Transform Data for Charts (Logic to count completions per day)
   const chartData = useMemo(() => {

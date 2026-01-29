@@ -2,7 +2,10 @@
 
 import { useState } from 'react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
-import { Plus, Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Plus, Loader2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,8 +16,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  FormDescription,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -23,146 +34,224 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
+import { cn } from '@/lib/utils';
+
+// 1. Zod Schema aligned with your API
+const formSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(100),
+  description: z.string().optional(),
+  frequency: z.enum(['DAILY', 'WEEKLY', 'MONTHLY']),
+  targetValue: z.coerce.number().min(1, 'Target must be at least 1'),
+  color: z.string().regex(/^#/, 'Invalid color code').default('#000000'),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
+// Pre-defined pastel/vibrant colors for UI
+const PRESET_COLORS = [
+  '#EF4444', // Red
+  '#F97316', // Orange
+  '#F59E0B', // Amber
+  '#84CC16', // Lime
+  '#10B981', // Emerald
+  '#06B6D4', // Cyan
+  '#3B82F6', // Blue
+  '#6366F1', // Indigo
+  '#8B5CF6', // Violet
+  '#D946EF', // Fuchsia
+  '#EC4899', // Pink
+  '#000000', // Black
+];
 
 export function AddHabitDialog() {
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
 
-  // Form State
-  const [formData, setFormData] = useState({
-    title: '',
-    category: '',
-    frequency: 'daily',
-    goalCount: 30,
+  // 2. Initialize Form
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      frequency: 'DAILY',
+      targetValue: 1,
+      color: '#000000',
+    },
   });
 
+  // 3. API Mutation
   const createHabit = useMutation({
-    mutationFn: async (newHabit: typeof formData) => {
+    mutationFn: async (values: FormValues) => {
       const res = await fetch('/api/habits', {
         method: 'POST',
-        body: JSON.stringify(newHabit),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
       });
-      if (!res.ok) throw new Error('Failed to create habit');
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to create habit');
+      }
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['habits'] });
       toast({ title: 'Habit created successfully!' });
       setOpen(false);
-      setFormData({
-        title: '',
-        category: '',
-        frequency: 'daily',
-        goalCount: 30,
-      }); // Reset
+      form.reset();
     },
-    onError: () => {
-      toast({ title: 'Failed to create habit', variant: 'destructive' });
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.title || !formData.category) {
-      toast({
-        title: 'Please fill in all required fields',
-        variant: 'destructive',
-      });
-      return;
-    }
-    createHabit.mutate(formData);
+  const onSubmit = (values: FormValues) => {
+    createHabit.mutate(values);
+  };
+
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (!isOpen) form.reset(); // Reset form when closing without saving
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button className="bg-primary hover:bg-primary/90 text-white gap-2 shadow-sm">
           <Plus className="h-4 w-4" /> Add Habit
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Create New Habit</DialogTitle>
           <DialogDescription>
-            Start tracking a new daily routing. Consistency is key!
+            Build a better routine. What do you want to achieve?
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="title" className="text-right">
-              Habit
-            </Label>
-            <Input
-              id="title"
-              placeholder="e.g., Read 10 pages"
-              className="col-span-3"
-              value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
-              required
-            />
-          </div>
 
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="category" className="text-right">
-              Area
-            </Label>
-            <Select
-              value={formData.category}
-              onValueChange={(val) =>
-                setFormData({ ...formData, category: val })
-              }
-            >
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Select area" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Health">Health & Wellness</SelectItem>
-                <SelectItem value="Work">Career & Finances</SelectItem>
-                <SelectItem value="Growth">Personal Growth</SelectItem>
-                <SelectItem value="Relationships">Relationships</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="goal" className="text-right">
-              Target
-            </Label>
-            <div className="col-span-3 flex items-center gap-2">
-              <Input
-                id="goal"
-                type="number"
-                className="w-20"
-                value={formData.goalCount}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    goalCount: parseInt(e.target.value),
-                  })
-                }
-              />
-              <span className="text-sm text-muted-foreground">
-                times / month
-              </span>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              type="submit"
-              disabled={createHabit.isPending}
-              className="bg-primary"
-            >
-              {createHabit.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
+            
+            {/* Title Field */}
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Habit Title</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Read 10 pages, Drink Water" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-              Save Habit
-            </Button>
-          </DialogFooter>
-        </form>
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              {/* Frequency Field */}
+              <FormField
+                control={form.control}
+                name="frequency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Frequency</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select frequency" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="DAILY">Daily</SelectItem>
+                        <SelectItem value="WEEKLY">Weekly</SelectItem>
+                        <SelectItem value="MONTHLY">Monthly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Target Value Field */}
+              <FormField
+                control={form.control}
+                name="targetValue"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Target Goal</FormLabel>
+                    <div className="flex items-center gap-2">
+                      <FormControl>
+                        <Input type="number" min={1} {...field} />
+                      </FormControl>
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">
+                        times / {form.watch('frequency').toLowerCase().replace('ly', '')}
+                      </span>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Color Picker Field */}
+            <FormField
+              control={form.control}
+              name="color"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Color Theme</FormLabel>
+                  <FormControl>
+                    <div className="flex flex-wrap gap-2">
+                      {PRESET_COLORS.map((color) => (
+                        <button
+                          key={color}
+                          type="button"
+                          className={cn(
+                            "w-8 h-8 rounded-full border-2 transition-all flex items-center justify-center",
+                            field.value === color 
+                              ? "border-neutral-900 scale-110" 
+                              : "border-transparent hover:scale-105"
+                          )}
+                          style={{ backgroundColor: color }}
+                          onClick={() => field.onChange(color)}
+                        >
+                          {field.value === color && (
+                            <Check className="w-4 h-4 text-white drop-shadow-md" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </FormControl>
+                  <FormDescription className="text-xs">
+                    This color will be used in your dashboard and charts.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter>
+              <Button
+                type="submit"
+                disabled={createHabit.isPending}
+                className="w-full sm:w-auto"
+              >
+                {createHabit.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  'Create Habit'
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

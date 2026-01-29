@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Habit } from '@/types/habit';
+import { Habit, HabitsResponse } from '@/types/habit';
 import { Goal } from '@/types/goal';
 import { toast } from '@/components/ui/use-toast';
 
@@ -21,7 +21,7 @@ export function useHabits() {
   const queryClient = useQueryClient();
 
   // 1. Fetch Habits
-  const query = useQuery<Habit[]>({
+  const query = useQuery<HabitsResponse>({
     queryKey: ['habits'],
     queryFn: () => fetcher('/api/habits'),
   });
