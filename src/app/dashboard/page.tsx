@@ -47,7 +47,7 @@ export default function DashboardPage() {
 
   const contributionData = useMemo(() => {
     const dataMap = new Map<string, number>();
-    const todayKey = format(new Date(), 'yyyy-MM-dd');  // Local today for filtering future
+    const todayKey = format(new Date(), 'yyyy-MM-dd');
 
     habits.forEach((habit: any) => {
       (habit.logs || []).forEach((log: any) => {
@@ -55,7 +55,7 @@ export default function DashboardPage() {
           const d = new Date(log.date);
           const localDate = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
           const key = format(localDate, 'yyyy-MM-dd');
-          if (key <= todayKey) {  // Exclude future dates
+          if (key <= todayKey) {
             const count = dataMap.get(key) || 0;
             dataMap.set(key, count + 1);
           }
@@ -63,7 +63,7 @@ export default function DashboardPage() {
       });
     });
 
-    const data: any[] = [];  // Use ContributionData type
+    const data: any[] = [];
     dataMap.forEach((count, dateStr) => {
       let level: 0 | 1 | 2 | 3 | 4 = 0;
       if (count >= 7) level = 4;
@@ -80,7 +80,6 @@ export default function DashboardPage() {
     return data;
   }, [habits]);
 
-  // --- Toggle Handler ---
   const handleHabitToggle = (habitId: string, date: Date) => {
     const today = new Date();
     const isToday =
@@ -92,7 +91,6 @@ export default function DashboardPage() {
 
     const habit = habits.find((h: any) => h.id === habitId);
 
-    // Strict comparison logic
     const isCurrentlyCompleted = habit?.logs?.some((log: any) => {
       const logDate = new Date(log.date);
       const isSameDay =
@@ -208,31 +206,36 @@ export default function DashboardPage() {
           onHabitCellClick={handleHabitToggle}
         />
       ) : (
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-          {/* Left Column: Interactive Grid (8 cols) */}
-          <div className="xl:col-span-8 space-y-6">
-            <div className="flex items-center justify-between">
+        // --- CLASSIC VIEW LAYOUT CHANGE ---
+        // h-[550px] sets the fixed height for both columns to align bottoms
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 h-[550px]">
+
+          {/* Left Column: Habit Grid */}
+          <div className="xl:col-span-8 h-full flex flex-col space-y-6">
+            <div className="flex items-center justify-between flex-shrink-0">
               <h2 className="text-xl font-heading font-semibold">
                 Daily Tracker
               </h2>
             </div>
 
             {habitsLoading ? (
-              <Skeleton className="h-[800px] w-full rounded-xl" />
+              <Skeleton className="h-full w-full rounded-xl" />
             ) : (
               <HabitGrid
-                habits={habits} // Pass real data
-                onToggleHabit={handleHabitToggle} // Pass toggle logic
+                habits={habits}
+                onToggleHabit={handleHabitToggle}
+                className="flex-1 min-h-0" // Allow flex shrinking within parent
               />
             )}
           </div>
 
-          {/* Right Column: Summaries (4 cols) */}
-          <div className="xl:col-span-4 space-y-6">
-            <h2 className="text-xl font-heading font-semibold">Insights</h2>
+          {/* Right Column: Insights */}
+          <div className="xl:col-span-4 h-full flex flex-col space-y-6">
+            <h2 className="text-xl font-heading font-semibold flex-shrink-0">Insights</h2>
             <DashboardCharts
-              habits={habits} // Pass real data
+              habits={habits}
               isLoading={habitsLoading}
+              className="flex-1 min-h-0" // Allow flex shrinking
             />
           </div>
         </div>
