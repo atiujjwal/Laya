@@ -36,8 +36,6 @@ export default function DashboardPage() {
       habitId: habit.id,
       habitTitle: habit.title,
       habitColor: habit.color || 'hsl(var(--primary))',
-      // Normalize dates from server (stored as UTC) into local dates so
-      // the matrix does not show "previous day" in certain timezones.
       completions: (habit.logs || [])
         .filter((log: any) => log.completed === true)
         .map((log: any) => {
@@ -78,9 +76,38 @@ export default function DashboardPage() {
         level,
       });
     });
-    
+
     return data;
   }, [habits]);
+
+  // --- Toggle Handler ---
+  const handleHabitToggle = (habitId: string, date: Date) => {
+    const today = new Date();
+    const isToday =
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear();
+
+    if (!isToday) return;
+
+    const habit = habits.find((h: any) => h.id === habitId);
+
+    // Strict comparison logic
+    const isCurrentlyCompleted = habit?.logs?.some((log: any) => {
+      const logDate = new Date(log.date);
+      const isSameDay =
+        logDate.getUTCFullYear() === date.getFullYear() &&
+        logDate.getUTCMonth() === date.getMonth() &&
+        logDate.getUTCDate() === date.getDate();
+      return isSameDay && (log.completed === true || log.status === 'COMPLETED');
+    });
+
+    toggleHabit({
+      id: habitId,
+      date,
+      completed: !isCurrentlyCompleted
+    });
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -126,11 +153,9 @@ export default function DashboardPage() {
       {/* 2. Metrics Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {statsLoading || xpLoading ? (
-          Array(4)
-            .fill(0)
-            .map((_, i) => (
-              <Skeleton key={i} className="h-32 w-full rounded-xl" />
-            ))
+          Array(4).fill(0).map((_, i) => (
+            <Skeleton key={i} className="h-32 w-full rounded-xl" />
+          ))
         ) : (
           <>
             <StatCard
@@ -179,46 +204,8 @@ export default function DashboardPage() {
           onTaskMove={(taskId, newStartTime, newEndTime) =>
             moveTask.mutate({ taskId, newStartTime, newEndTime })
           }
-          onDayClick={(date) => {
-            console.log('Day clicked:', date);
-          }}
-          onHabitCellClick={(habitId, date) => {
-            // --- Date Restrictions & Toggle Logic ---
-            const today = new Date();
-            const isToday =
-              date.getDate() === today.getDate() &&
-              date.getMonth() === today.getMonth() &&
-              date.getFullYear() === today.getFullYear();
-
-            // Guard Clause: Only allow editing "today"
-            if (!isToday) {
-              return;
-            }
-
-            // Determine current state to toggle correctly
-            const habit = habits.find((h: any) => h.id === habitId);
-
-            const isCurrentlyCompleted = habit?.logs?.some((log: any) => {
-              // Ensure we parse the string date from JSON safely
-              const logDate = new Date(log.date);
-
-              // Compare Server's UTC Date (How data is stored) 
-              // vs UI's Local Date (How data is clicked)
-              const isSameDay =
-                logDate.getUTCFullYear() === date.getFullYear() &&
-                logDate.getUTCMonth() === date.getMonth() &&
-                logDate.getUTCDate() === date.getDate();
-
-              return isSameDay && (log.completed === true || log.status === 'completed');
-            });
-
-            // Trigger mutation with explicit boolean state
-            toggleHabit({
-              id: habitId,
-              date,
-              completed: !isCurrentlyCompleted
-            });
-          }}
+          onDayClick={(date) => console.log('Day clicked:', date)}
+          onHabitCellClick={handleHabitToggle}
         />
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
@@ -231,16 +218,22 @@ export default function DashboardPage() {
             </div>
 
             {habitsLoading ? (
-              <Skeleton className="h-[500px] w-full rounded-xl" />
+              <Skeleton className="h-[800px] w-full rounded-xl" />
             ) : (
-              <HabitGrid />
+              <HabitGrid
+                habits={habits} // Pass real data
+                onToggleHabit={handleHabitToggle} // Pass toggle logic
+              />
             )}
           </div>
 
           {/* Right Column: Summaries (4 cols) */}
           <div className="xl:col-span-4 space-y-6">
             <h2 className="text-xl font-heading font-semibold">Insights</h2>
-            <DashboardCharts />
+            <DashboardCharts
+              habits={habits} // Pass real data
+              isLoading={habitsLoading}
+            />
           </div>
         </div>
       )}

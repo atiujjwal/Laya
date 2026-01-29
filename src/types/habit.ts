@@ -13,6 +13,7 @@ export interface HabitLog {
 export interface Habit {
   id: string;
   title: string;
+  color?: string;
   category: string; // e.g., "Health", "Productivity"
   frequency: 'daily' | 'weekly';
   goalCount: number; // e.g., 20 times per month
