@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { format, startOfYear, endOfYear, eachDayOfInterval, isSameDay } from 'date-fns';
+import { format, startOfYear, endOfYear, eachDayOfInterval, isSameDay, getDay } from 'date-fns';  // Added getDay if needed
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
@@ -62,7 +62,7 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = ({
 
     yearDays.forEach((day, index) => {
       const dayOfWeek = day.getDay();
-      
+
       // Start new week on Sunday or first day
       if (dayOfWeek === 0 || index === 0) {
         if (currentWeek.length > 0) {
@@ -90,34 +90,41 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = ({
 
   // Get day of week label
   const getDayLabel = (dayIndex: number): string => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
     return days[dayIndex];
   };
 
   // Get month labels
   const monthLabels = useMemo(() => {
-    const labels: { month: number; weekIndex: number }[] = [];
+    const labels: { month: number; positionPercent: number }[] = [];
     const seenMonths = new Set<number>();
+    let cumulativeDays = 0;
 
-    weeks.forEach((week, weekIndex) => {
-      const firstDay = week[0];
-      const month = firstDay.getMonth();
-      if (!seenMonths.has(month)) {
-        seenMonths.add(month);
-        labels.push({ month, weekIndex });
-      }
+    weeks.forEach((week) => {
+      week.forEach((day) => {
+        const month = day.getMonth();
+        if (!seenMonths.has(month)) {
+          seenMonths.add(month);
+          // Calculate position: days before this day / total days
+          const positionPercent = (cumulativeDays / yearDays.length) * 100;
+          // Add offset within week: (day.getDay() / 7) * (100 / weeks.length)
+          const weekWidth = 100 / weeks.length;
+          const dayOffset = (day.getDay() / 7) * weekWidth;
+          labels.push({ month, positionPercent: positionPercent + dayOffset });
+        }
+        cumulativeDays++;
+      });
     });
-
     return labels;
-  }, [weeks]);
+  }, [weeks, yearDays]);
 
   return (
     <div className="w-full bg-card border rounded-xl p-6 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-heading font-semibold">Activity Overview</h2>
+          <h2 className="text-xl font-heading font-semibold"> Overview</h2>
           <p className="text-sm text-muted-foreground">
-            {year} contribution graph
+            {year} Streak
           </p>
         </div>
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
@@ -138,11 +145,11 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = ({
         <div className="inline-block min-w-full">
           {/* Month Labels */}
           <div className="relative h-4 mb-2">
-            {monthLabels.map(({ month, weekIndex }) => (
+            {monthLabels.map(({ month, positionPercent }) => (
               <div
                 key={month}
                 className="absolute text-xs text-muted-foreground"
-                style={{ left: `${(weekIndex / weeks.length) * 100}%` }}
+                style={{ left: `${positionPercent}%` }}
               >
                 {format(new Date(year, month, 1), 'MMM')}
               </div>
@@ -156,7 +163,7 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = ({
                 <div
                   key={dayIndex}
                   className="text-xs text-muted-foreground h-3 flex items-center"
-                  style={{ visibility: dayIndex % 2 === 0 ? 'visible' : 'hidden' }}
+                  style={{ visibility: 'visible' }}
                 >
                   {getDayLabel(dayIndex)}
                 </div>
@@ -195,7 +202,7 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = ({
                                 {format(day, 'MMM d, yyyy')}
                               </p>
                               <p className="text-muted-foreground">
-                                {LEVEL_LABELS[dayData.level]} ({dayData.count} activities)
+                                ({dayData.count} activities)
                               </p>
                             </div>
                           </TooltipContent>

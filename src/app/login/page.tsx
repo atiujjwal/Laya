@@ -162,7 +162,7 @@ export default function LoginPage() {
                   <Input
                     id="otp"
                     type="text"
-                    placeholder="123456"
+                    placeholder="1AB23C"
                     className="text-center text-lg tracking-widest"
                     maxLength={6}
                     value={otp}

@@ -33,14 +33,14 @@ import {
   AreaType,
 } from '@/components/molecules/AreaOfLifeBadge';
 import { toast } from '@/components/ui/use-toast';
-import { Habit } from '@/types/habit';
+import { Habit, HabitsResponse } from '@/types/habit';
 
 export default function HabitsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const queryClient = useQueryClient();
 
   // Fetch Habits
-  const { data: habits = [], isLoading } = useQuery<Habit[]>({
+  const { data, isLoading } = useQuery<HabitsResponse>({
     queryKey: ['habits'],
     queryFn: async () => {
       const res = await fetch('/api/habits');
@@ -48,6 +48,8 @@ export default function HabitsPage() {
       return res.json();
     },
   });
+
+  const habits = data?.data ?? [];
 
   // Delete Mutation
   const deleteHabit = useMutation({

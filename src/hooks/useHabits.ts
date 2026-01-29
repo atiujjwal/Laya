@@ -12,6 +12,7 @@ interface DashboardStats {
   completionRate: number;
   perfectDays: number;
   currentStreak: number;
+  longestStreak: number;
 }
 
 // --- Generic Fetcher ---

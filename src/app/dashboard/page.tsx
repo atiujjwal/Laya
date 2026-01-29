@@ -12,7 +12,8 @@ import { useLayaStore } from '@/lib/store';
 import { Activity, CheckCircle2, TrendingUp, Calendar, LayoutGrid, LayoutList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { format } from 'date-fns';
 
 export default function DashboardPage() {
   const { habits, isLoading: habitsLoading, toggleHabit } = useHabits();
@@ -45,6 +46,41 @@ export default function DashboardPage() {
         }),
     }))
     : [];
+
+  const contributionData = useMemo(() => {
+    const dataMap = new Map<string, number>();
+    const todayKey = format(new Date(), 'yyyy-MM-dd');  // Local today for filtering future
+
+    habits.forEach((habit: any) => {
+      (habit.logs || []).forEach((log: any) => {
+        if (log.completed === true || log.status === 'COMPLETED') {
+          const d = new Date(log.date);
+          const localDate = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+          const key = format(localDate, 'yyyy-MM-dd');
+          if (key <= todayKey) {  // Exclude future dates
+            const count = dataMap.get(key) || 0;
+            dataMap.set(key, count + 1);
+          }
+        }
+      });
+    });
+
+    const data: any[] = [];  // Use ContributionData type
+    dataMap.forEach((count, dateStr) => {
+      let level: 0 | 1 | 2 | 3 | 4 = 0;
+      if (count >= 7) level = 4;
+      else if (count >= 5) level = 3;
+      else if (count >= 3) level = 2;
+      else if (count >= 1) level = 1;
+      data.push({
+        date: new Date(dateStr),
+        count,
+        level,
+      });
+    });
+    
+    return data;
+  }, [habits]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -132,7 +168,7 @@ export default function DashboardPage() {
         <GridDashboard
           date={currentDate}
           tasks={timelineTasks}
-          contributionData={analyticsData?.contributionData || []}
+          contributionData={contributionData}
           xpData={analyticsData?.xpData || []}
           categoryBreakdown={analyticsData?.categoryBreakdown || []}
           totalXP={xpStats?.totalXP || 0}

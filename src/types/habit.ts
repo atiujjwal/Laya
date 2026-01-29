@@ -1,5 +1,9 @@
 // types/habit.ts
 
+export interface HabitsResponse {
+  data: Habit[];
+}
+
 export interface HabitLog {
   date: string; // ISO Date "2026-01-22"
   status: 'completed' | 'skipped' | 'failed';
