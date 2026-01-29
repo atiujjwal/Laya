@@ -13,7 +13,6 @@ import { Activity, CheckCircle2, TrendingUp, Calendar, LayoutGrid, LayoutList } 
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function DashboardPage() {
   const { habits, isLoading: habitsLoading, toggleHabit } = useHabits();
@@ -33,18 +32,18 @@ export default function DashboardPage() {
   // Convert habits to habit matrix format
   const habitMatrixData = Array.isArray(habits)
     ? habits.map((habit: any) => ({
-        habitId: habit.id,
-        habitTitle: habit.title,
-        habitColor: habit.color || 'hsl(var(--primary))',
-        // Normalize dates from server (stored as UTC) into local dates so
-        // the matrix does not show "previous day" in certain timezones.
-        completions: (habit.logs || [])
-          .filter((log: any) => log.completed === true)
-          .map((log: any) => {
-            const d = new Date(log.date);
-            return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
-          }),
-      }))
+      habitId: habit.id,
+      habitTitle: habit.title,
+      habitColor: habit.color || 'hsl(var(--primary))',
+      // Normalize dates from server (stored as UTC) into local dates so
+      // the matrix does not show "previous day" in certain timezones.
+      completions: (habit.logs || [])
+        .filter((log: any) => log.completed === true)
+        .map((log: any) => {
+          const d = new Date(log.date);
+          return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+        }),
+    }))
     : [];
 
   return (
@@ -145,12 +144,44 @@ export default function DashboardPage() {
             moveTask.mutate({ taskId, newStartTime, newEndTime })
           }
           onDayClick={(date) => {
-            // Navigate to that day or update current date
             console.log('Day clicked:', date);
           }}
           onHabitCellClick={(habitId, date) => {
-            // Use the existing toggleHabit mutation so Matrix + main grid stay in sync
-            toggleHabit({ id: habitId, date });
+            // --- Date Restrictions & Toggle Logic ---
+            const today = new Date();
+            const isToday =
+              date.getDate() === today.getDate() &&
+              date.getMonth() === today.getMonth() &&
+              date.getFullYear() === today.getFullYear();
+
+            // Guard Clause: Only allow editing "today"
+            if (!isToday) {
+              return;
+            }
+
+            // Determine current state to toggle correctly
+            const habit = habits.find((h: any) => h.id === habitId);
+
+            const isCurrentlyCompleted = habit?.logs?.some((log: any) => {
+              // Ensure we parse the string date from JSON safely
+              const logDate = new Date(log.date);
+
+              // Compare Server's UTC Date (How data is stored) 
+              // vs UI's Local Date (How data is clicked)
+              const isSameDay =
+                logDate.getUTCFullYear() === date.getFullYear() &&
+                logDate.getUTCMonth() === date.getMonth() &&
+                logDate.getUTCDate() === date.getDate();
+
+              return isSameDay && (log.completed === true || log.status === 'completed');
+            });
+
+            // Trigger mutation with explicit boolean state
+            toggleHabit({
+              id: habitId,
+              date,
+              completed: !isCurrentlyCompleted
+            });
           }}
         />
       ) : (

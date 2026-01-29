@@ -44,9 +44,7 @@ export function useHabits() {
 
   // 2. Toggle Habit Completion (Optimistic Update)
   const toggleMutation = useMutation({
-    mutationFn: async ({ id, date }: { id: string; date: Date }) => {
-      // Send UTC-midnight ISO so the server upsert key is stable
-      // and the UI doesn't "shift" to the previous day.
+    mutationFn: async ({ id, date, completed }: { id: string; date: Date; completed: boolean }) => {
       const iso = toUtcMidnightIso(date);
 
       const res = await fetch(`/api/habits/log`, {
@@ -55,8 +53,8 @@ export function useHabits() {
         body: JSON.stringify({
           habitId: id,
           date: iso,
-          value: 1,
-          completed: true,
+          value: completed ? 1 : 0,
+          completed: completed,
           meta: {},
         }),
       });

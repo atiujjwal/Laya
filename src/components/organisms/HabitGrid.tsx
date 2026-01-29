@@ -54,14 +54,27 @@ export function HabitGrid() {
   );
 
   const handleToggle = (habitId: string, date: Date) => {
+    // --- Date Restrictions ---
+    const today = new Date();
+
+    // Check if the clicked date matches Today (Day, Month, Year)
+    const isToday =
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear();
+
+    // Prevent any changes if it's not today
+    if (!isToday) return;
+
     const dateStr = date.toISOString().split('T')[0];
+
     setHabits((prev) =>
       prev.map((habit) => {
         if (habit.id !== habitId) return habit;
         const exists = habit.logs.find((l) => l.date === dateStr);
         let newLogs = exists
-          ? habit.logs.filter((l) => l.date !== dateStr)
-          : [...habit.logs, { date: dateStr, status: 'completed' as const }];
+          ? habit.logs.filter((l) => l.date !== dateStr) // Logic: Unmark if exists
+          : [...habit.logs, { date: dateStr, status: 'completed' as const }]; // Logic: Mark if missing
         return { ...habit, logs: newLogs };
       }),
     );
@@ -115,21 +128,25 @@ export function HabitGrid() {
               Habit
             </div>
             <div className="flex-1 flex">
-              {days.map((d, i) => (
-                <div
-                  key={i}
-                  className="flex-1 min-w-[2.5rem] text-center py-2 border-r border-neutral-200/50 last:border-0"
-                >
-                  <div className="text-[10px] text-muted-foreground font-semibold">
-                    {d.toLocaleDateString('en-US', { weekday: 'narrow' })}
-                  </div>
+              {days.map((d, i) => {
+                const isTodayHeader = d.getDate() === new Date().getDate() &&
+                  d.getMonth() === new Date().getMonth();
+                return (
                   <div
-                    className={`text-sm ${d.getDate() === new Date().getDate() ? 'text-primary font-bold' : 'text-foreground'}`}
+                    key={i}
+                    className={`flex-1 min-w-[2.5rem] text-center py-2 border-r border-neutral-200/50 last:border-0 ${!isTodayHeader ? 'opacity-50' : ''}`}
                   >
-                    {d.getDate()}
+                    <div className="text-[10px] text-muted-foreground font-semibold">
+                      {d.toLocaleDateString('en-US', { weekday: 'narrow' })}
+                    </div>
+                    <div
+                      className={`text-sm ${isTodayHeader ? 'text-primary font-bold' : 'text-foreground'}`}
+                    >
+                      {d.getDate()}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <div className="w-32 flex-shrink-0 text-center py-3 font-semibold text-xs text-muted-foreground uppercase tracking-wider border-l">
               Progress
