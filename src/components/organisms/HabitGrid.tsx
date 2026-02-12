@@ -6,6 +6,7 @@ import { HabitRow } from './HabitRow';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const getDaysInMonth = (year: number, month: number) => {
   const date = new Date(year, month, 1);
@@ -20,9 +21,10 @@ const getDaysInMonth = (year: number, month: number) => {
 interface HabitGridProps {
   habits?: Habit[];
   onToggleHabit?: (id: string, date: Date) => void;
+  className?: string; // Accept generic className for layout positioning
 }
 
-export function HabitGrid({ habits = [], onToggleHabit }: HabitGridProps) {
+export function HabitGrid({ habits = [], onToggleHabit, className }: HabitGridProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const todayRef = useRef<HTMLDivElement>(null);
 
@@ -45,7 +47,9 @@ export function HabitGrid({ habits = [], onToggleHabit }: HabitGridProps) {
   }, [currentDate]);
 
   return (
-    <Card className="border-border shadow-sm bg-white flex flex-col h-full">
+    // Apply className passed from page to set height/flex properties
+    <Card className={cn("border-border shadow-sm bg-white flex flex-col", className)}>
+
       {/* Header Controls */}
       <div className="flex items-center justify-between p-4 border-b bg-white flex-shrink-0 rounded-t-xl">
         <div className="flex items-center gap-2 text-muted-foreground">
@@ -64,19 +68,18 @@ export function HabitGrid({ habits = [], onToggleHabit }: HabitGridProps) {
         </div>
       </div>
 
-      {/* Scrollable Container */}
-      <div className="overflow-auto custom-scrollbar h-[800px] relative">
+      {/* Scrollable Container 
+         flex-1: takes up remaining height defined by parent 
+         overflow-auto: enables scrolling if content > height 
+      */}
+      <div className="flex-1 overflow-auto custom-scrollbar relative">
         <div className="min-w-[800px]">
 
-          {/* --- STICKY HEADER ROW --- */}
+          {/* STICKY HEADER ROW */}
           <div className="flex border-b bg-neutral-50/95 backdrop-blur sticky top-0 z-30 shadow-sm">
-
-            {/* Sticky Left: Habit Title */}
             <div className="w-48 flex-shrink-0 px-4 py-3 font-semibold text-xs text-muted-foreground uppercase tracking-wider sticky left-0 bg-neutral-50 z-40 border-r">
               Habit
             </div>
-
-            {/* Scrollable Middle: Days */}
             <div className="flex-1 flex">
               {days.map((d, i) => {
                 const todayObj = new Date();
@@ -99,21 +102,19 @@ export function HabitGrid({ habits = [], onToggleHabit }: HabitGridProps) {
                 );
               })}
             </div>
-
-            {/* Sticky Right: Progress */}
             <div className="w-32 flex-shrink-0 text-center py-3 font-semibold text-xs text-muted-foreground uppercase tracking-wider sticky right-0 bg-neutral-50 z-40 border-l">
               Progress
             </div>
           </div>
 
-          {/* --- DATA ROWS --- */}
+          {/* DATA ROWS */}
           <div className="divide-y divide-neutral-100">
             {habits.map((habit) => (
               <HabitRow
                 key={habit.id}
                 habit={habit}
                 daysInMonth={days}
-                className="h-10"
+                className="h-10" // Narrow rows to fit ~10 easily
                 onToggle={(id, date) => onToggleHabit?.(id, date)}
               />
             ))}
